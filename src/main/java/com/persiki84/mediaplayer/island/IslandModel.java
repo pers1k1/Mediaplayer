@@ -1,0 +1,172 @@
+package com.persiki84.mediaplayer.island;
+
+import com.persiki84.mediaplayer.anim.FrameClock;
+import com.persiki84.mediaplayer.anim.Smooth;
+import com.persiki84.mediaplayer.anim.Spring;
+import com.persiki84.mediaplayer.config.IslandDial;
+import com.persiki84.mediaplayer.config.IslandFlag;
+import com.persiki84.mediaplayer.config.IslandSettings;
+import com.persiki84.mediaplayer.media.MediaBridge;
+import com.persiki84.mediaplayer.media.MediaTrack;
+import com.persiki84.mediaplayer.media.MediaWatch;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.network.chat.Component;
+
+public final class IslandModel {
+    private static final long PAUSE_HOLD_MS = 3000L;
+    private static final long STALL_HOLD_MS = 10000L;
+    private static final float SHOW_RESPONSE = 0.42f;
+    private static final float SHOW_DAMPING = 0.86f;
+    private static final float BLIND_RESPONSE = 0.34f;
+    private static final float BLIND_DAMPING = 0.9f;
+    private static final float ENERGY_SPEED = 4.5f;
+    private static final int PING_CEILING = 300;
+
+    private static final Spring shown = new Spring(SHOW_RESPONSE, SHOW_DAMPING, 0.0f);
+    private static final Spring blinded = new Spring(BLIND_RESPONSE, BLIND_DAMPING, 0.0f);
+    private static final Smooth energy = new Smooth(0.0f, ENERGY_SPEED);
+
+    private static long advancedFrame = -1L;
+    private static MediaTrack track = MediaTrack.NONE;
+    private static long playingAt;
+    private static long cardUntil;
+    private static boolean dormant = true;
+    private static boolean carded;
+    private static int frames = -1;
+    private static int latency = -1;
+    private static Component framesLabel = Component.empty();
+    private static Component latencyLabel = Component.empty();
+    private static Component nick = Component.empty();
+    private static String nickRaw = "";
+
+    private IslandModel() {}
+
+    public static void pollStats() {
+        Minecraft minecraft = Minecraft.getInstance();
+        int shownFrames = minecraft.getFps();
+        if (shownFrames != frames) {
+            frames = shownFrames;
+            framesLabel = Component.literal(String.valueOf(frames));
+        }
+        int shownLatency = ping(minecraft);
+        if (shownLatency != latency) {
+            latency = shownLatency;
+            latencyLabel = Component.literal(String.valueOf(latency));
+        }
+        rememberNick(minecraft);
+    }
+
+    private static void rememberNick(Minecraft minecraft) {
+        String name = minecraft.getUser().getName();
+        if (name.equals(nickRaw)) return;
+
+        nickRaw = name;
+        nick = Component.literal(name);
+    }
+
+    private static int ping(Minecraft minecraft) {
+        if (minecraft.player == null || minecraft.getConnection() == null) return 0;
+
+        PlayerInfo info = minecraft.getConnection().getPlayerInfo(minecraft.player.getUUID());
+        return info == null ? 0 : Math.max(0, info.getLatency());
+    }
+
+    public static void advanceFrame() {
+        long frame = FrameClock.frame();
+        if (frame == advancedFrame) return;
+
+        advancedFrame = frame;
+        advance(FrameClock.delta());
+    }
+
+    private static void advance(float delta) {
+        MediaTrack fresh = IslandSettings.on(IslandFlag.MEDIA) ? MediaWatch.current() : MediaTrack.NONE;
+        long now = System.currentTimeMillis();
+        if (fresh.present() && fresh.playing()) playingAt = now;
+
+        boolean live = fresh.present() && (fresh.playing() || now - playingAt < holdFor());
+        retarget(fresh, live, now);
+        if (fresh.present() && !fresh.blind()) IslandArt.accept(fresh.artStamp(), MediaBridge.artFile());
+        IslandProgress.advance(track, delta);
+        IslandFlip.advance(delta);
+        IslandTone.advance(delta);
+        shown.to(live ? 1.0f : 0.0f, delta);
+        carded = live && !fresh.blind() && now < cardUntil && IslandSettings.on(IslandFlag.CARD);
+        blinded.to(live && fresh.blind() ? 1.0f : 0.0f, delta);
+        energy.to(fresh.playing() ? 1.0f : 0.0f, delta);
+    }
+
+    private static long holdFor() {
+        return MediaWatch.stalled() ? STALL_HOLD_MS : PAUSE_HOLD_MS;
+    }
+
+    private static void retarget(MediaTrack fresh, boolean live, long now) {
+        if (!live) {
+            cardUntil = 0L;
+            dormant = true;
+            return;
+        }
+        if (dormant || !fresh.sameTrack(track)) {
+            if (!dormant) IslandOrder.note(track, track.elapsedMs(now), fresh);
+            cardUntil = now + (long) (IslandSettings.dial(IslandDial.CARD_SECONDS) * 1000.0f);
+        }
+        dormant = false;
+        track = fresh;
+    }
+
+    public static MediaTrack track() {
+        return track;
+    }
+
+    public static float media() {
+        return clamp(shown.get());
+    }
+
+    public static boolean carded() {
+        return carded;
+    }
+
+    public static float blind() {
+        return clamp(blinded.get());
+    }
+
+    private static float clamp(float value) {
+        return Math.max(0.0f, Math.min(1.0f, value));
+    }
+
+    public static float energy() {
+        return energy.get();
+    }
+
+    public static Component frames() {
+        return framesLabel;
+    }
+
+    public static Component latency() {
+        return latencyLabel;
+    }
+
+    public static Component nick() {
+        return nick;
+    }
+
+    public static float quality() {
+        if (latency <= 0) return 1.0f;
+        return Math.max(0.0f, 1.0f - latency / (float) PING_CEILING);
+    }
+
+    public static void forget() {
+        track = MediaTrack.NONE;
+        dormant = true;
+        cardUntil = 0L;
+        playingAt = 0L;
+        shown.snap(0.0f);
+        carded = false;
+        blinded.snap(0.0f);
+        IslandProgress.forget();
+        IslandFlip.forget();
+        IslandOrder.forget();
+        IslandArt.forget();
+    }
+}
