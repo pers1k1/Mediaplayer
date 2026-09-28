@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.persiki84.mediaplayer.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "GameRendererMixin",
+    "GuiRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
