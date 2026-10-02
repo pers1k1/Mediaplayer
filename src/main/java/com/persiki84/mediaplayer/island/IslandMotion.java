@@ -122,6 +122,12 @@ public final class IslandMotion {
         return Anim.clamp01((height.get() - IslandMeasure.PILL_HEIGHT) / travel);
     }
 
+    // WHY: остров у края экрана прижат к нему, и центр считается по ширине: с толчком в ширине толчок
+    // WHY: сдвигал весь остров вбок, и содержимое ехало на несколько пикселей
+    public float steadyWidth() {
+        return Math.max(1.0f, width.get());
+    }
+
     public float width() {
         return Math.max(1.0f, width.get() * (1.0f + SWELL_WIDTH * swell.get()));
     }

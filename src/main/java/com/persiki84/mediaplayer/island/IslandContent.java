@@ -93,16 +93,17 @@ final class IslandContent {
                 flight.pillY() + top, scale, ink((1.0f - media) * (1.0f - flight.share())), flight.blur());
     }
 
-    // WHY: исполнителя нет в таблетке, и он выходит из строки таймера: появляется под размытием и
-    // WHY: доезжает до своего места под названием вместе с остальными частями
+    // WHY: исполнителя нет в таблетке, и он выезжает из-под названия вниз на своё место: из строки
+    // WHY: таймера он выезжал у самого края ещё маленькой таблетки и срезался её кромкой.
+    // WHY: Проявляется к концу хода, когда карточке уже есть куда его поставить
     private static void artist(IslandFlight flight) {
         if (!IslandSettings.on(IslandFlag.ARTIST) || flight.share() <= 0.02f) return;
 
         float x = textX(flight);
-        float top = flight.y(PILL_TIME_TOP, CARD_ARTIST_TOP);
+        float top = flight.y(PILL_TITLE_TOP, CARD_ARTIST_TOP);
         float slot = slot(flight);
         flight.scene().titles().artist.draw(flight.scene().graphics(), flight.scene().font(), x, top, slot,
-                Ink.fit(ARTIST_SCALE), ink(flight.share()), flight.blur());
+                Ink.fit(ARTIST_SCALE), ink(flight.share() * flight.share()), flight.blur());
     }
 
     private static void bars(IslandFlight flight) {

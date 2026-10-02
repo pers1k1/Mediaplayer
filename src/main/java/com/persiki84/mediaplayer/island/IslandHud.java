@@ -65,7 +65,7 @@ public final class IslandHud {
         GuiGraphics graphics = scene.graphics();
         IslandPlacement placement = IslandSettings.placement();
         float scale = placement.scale();
-        float span = Math.max(motion.width(), measure.capsule()) * scale;
+        float span = Math.max(motion.steadyWidth(), measure.capsule()) * scale;
         float tall = (motion.height() + tail()) * scale;
         float center = Anim.clamp(placement.centerShare() * graphics.guiWidth(), span / 2.0f,
                 Math.max(span / 2.0f, graphics.guiWidth() - span / 2.0f));
