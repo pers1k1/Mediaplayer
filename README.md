@@ -4,6 +4,10 @@ Glass media island for the Minecraft HUD (Fabric 1.21.11): the track playing in 
 
 Остров медиаплеера для HUD Minecraft на Fabric 1.21.11. Показывает трек, который играет в Windows, обложку, визуализатор звука, FPS и пинг. Двигается как Dynamic Island на iPhone. Мод только клиентский, на сервер ставить не нужно.
 
+## Скачать
+
+Последний выпуск: [Mediaplayer 1.0.0](https://github.com/pers1k1/Mediaplayer/releases/latest), файл `mediaplayer-1.0.0.jar`. Положить в папку `mods` вместе с [Fabric API](https://modrinth.com/mod/fabric-api) для Minecraft 1.21.11.
+
 ## Что умеет
 
 - **Трек из любого плеера Windows.** Браузеры (YouTube, SoundCloud, Яндекс Музыка, VK и другие), Spotify, AIMP, foobar2000, Telegram, Медиаплеер Windows. Остров подхватывает всё, что публикует сессию SMTC, и звук приложений, которые перестали её публиковать.
