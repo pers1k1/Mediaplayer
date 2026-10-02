@@ -62,6 +62,9 @@ public final class Line {
         return offsets;
     }
 
+    // WHY: Font.width округляет ширину вверх до целой единицы, и буква, мерянная отдельно, получала
+    // WHY: до единицы лишнего: в строке по буквам промежутки разъезжались на пиксели. Ширина берётся
+    // WHY: дробной, прямо из раскладчика строк
     private void measure(Font font, float scale) {
         float pixels = scale * Ink.base();
         Object face = Typeface.faceKey(weight, pixels);
@@ -72,7 +75,7 @@ public final class Line {
         float cursor = 0.0f;
         for (int index = 0; index < glyphs.length; index++) {
             offsets[index] = cursor;
-            cursor += font.width(Typeface.styled(glyphs[index], weight, pixels));
+            cursor += font.getSplitter().stringWidth(Typeface.styled(glyphs[index], weight, pixels));
         }
         width = cursor;
     }

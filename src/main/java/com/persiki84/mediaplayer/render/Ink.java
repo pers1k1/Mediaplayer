@@ -36,7 +36,7 @@ public final class Ink {
     }
 
     public static float width(Font font, Component text, Weight weight, float scale) {
-        return font.width(Typeface.styled(text, weight, scale * base())) * scale;
+        return font.getSplitter().stringWidth(Typeface.styled(text, weight, scale * base())) * scale;
     }
 
     public static float base() {
