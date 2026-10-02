@@ -7,6 +7,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import org.joml.Matrix3x2f;
+import org.joml.Vector2f;
 
 public final class Ink {
     public static final float GLYPH_HEIGHT = 8.0f;
@@ -42,11 +43,23 @@ public final class Ink {
         return basePixels > 0.0f ? basePixels : Minecraft.getInstance().getWindow().getGuiScale();
     }
 
+    public record Point(float x, float y) {}
+
     public static void label(GuiGraphics graphics, Font font, Component text, Weight weight, float x, float y,
                              float scale, int color, float blur) {
+        paint(graphics, font, text, weight, x, y, scale, color, blur, snapping);
+    }
+
+    public static void glyph(GuiGraphics graphics, Font font, Component text, Weight weight, float x, float y,
+                             float scale, int color, float blur) {
+        paint(graphics, font, text, weight, x, y, scale, color, blur, false);
+    }
+
+    private static void paint(GuiGraphics graphics, Font font, Component text, Weight weight, float x, float y,
+                              float scale, int color, float blur, boolean onGrid) {
         if ((color >>> 24) < 3) return;
         if (blur <= SHARP) {
-            stamp(graphics, font, text, weight, x, y, scale, color, snapping);
+            stamp(graphics, font, text, weight, x, y, scale, color, onGrid);
             return;
         }
         float reach = blur * BLUR_REACH * scale;
@@ -56,6 +69,19 @@ public final class Ink {
                 reach * INNER_REACH, INNER_TAPS);
         ring(graphics, font, text, weight, x, y, scale,
                 Colors.alpha(color, spread * (1.0f - INNER_SHARE) / OUTER_TAPS), reach, OUTER_TAPS);
+    }
+
+    // WHY: к целому физическому пикселю привязывается только начало строки, а буквы внутри стоят по
+    // WHY: своим дробным местам: округление каждой буквы отдельно разводило промежутки между ними
+    public static Point origin(GuiGraphics graphics, float x, float y) {
+        if (!snapping) return new Point(x, y);
+
+        Matrix3x2f pose = new Matrix3x2f(graphics.pose());
+        float gui = Minecraft.getInstance().getWindow().getGuiScale();
+        Vector2f device = pose.transformPosition(x, y, new Vector2f()).mul(gui);
+        float shiftX = (Math.round(device.x) - device.x) / (gui * Math.max(1.0e-3f, pose.m00()));
+        float shiftY = (Math.round(device.y) - device.y) / (gui * Math.max(1.0e-3f, pose.m11()));
+        return new Point(x + shiftX, y + shiftY);
     }
 
     // WHY: размытие строки собирается из ядра и двух колец копий, веса которых в сумме дают ровно
@@ -122,19 +148,19 @@ public final class Ink {
                             int color, float blur, float shift, boolean overflow) {
         float margin = margin(slot, scale);
         float fade = Math.max(margin, Math.min(LINE_UNITS * scale * FADE_LINES, slot * FADE_BOX_SHARE));
-        float start = x - shift;
+        Point start = origin(graphics, x - shift, y);
         float leftWidth = Math.min(fade, margin + shift * FADE_GROWTH);
-        float rightWidth = Math.min(fade, margin + Math.max(0.0f, start + line.width(font, scale) - x - slot)
-                * FADE_GROWTH);
+        float hiddenRight = Math.max(0.0f, start.x() + line.width(font, scale) - x - slot);
+        float rightWidth = Math.min(fade, margin + hiddenRight * FADE_GROWTH);
         Component[] glyphs = line.glyphs();
         float[] offsets = line.offsets(font, scale);
-        float[] insets = line.insets(font, scale);
         for (int index = 0; index < glyphs.length; index++) {
-            float left = start + (offsets[index] + insets[index]) * scale;
+            float left = start.x() + offsets[index] * scale;
             float shown = overflow ? Math.min(Anim.clamp01((left - (x - margin)) / leftWidth),
                     Anim.clamp01((x + slot + margin - left) / rightWidth)) : 1.0f;
             if (shown <= 0.01f) continue;
-            label(graphics, font, glyphs[index], line.weight(), left, y, scale, Colors.alpha(color, shown), blur);
+            glyph(graphics, font, glyphs[index], line.weight(), left, start.y(), scale, Colors.alpha(color, shown),
+                    blur);
         }
     }
 

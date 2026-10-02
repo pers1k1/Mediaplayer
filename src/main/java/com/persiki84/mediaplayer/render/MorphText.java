@@ -63,22 +63,23 @@ public final class MorphText {
             Ink.line(graphics, font, current, x, y, slot, scale, color, blur);
             return;
         }
+        Ink.Point start = Ink.origin(graphics, x, y);
         Ink.clipped(graphics, x, y, slot, scale, () -> {
             Lane now = new Lane(current, font, scale);
             Lane was = new Lane(previous, font, scale);
-            steady(graphics, now, was, x, y, scale, color, blur);
-            changed(graphics, now, was, x, y, scale, color, blur, 1.0f);
-            changed(graphics, was, now, x, y, scale, color, blur, -1.0f);
+            steady(graphics, now, was, start.x(), start.y(), scale, color, blur);
+            changed(graphics, now, was, start.x(), start.y(), scale, color, blur, 1.0f);
+            changed(graphics, was, now, start.x(), start.y(), scale, color, blur, -1.0f);
         });
     }
 
-    private record Lane(Line line, Font font, Component[] glyphs, float[] offsets, float[] insets) {
+    private record Lane(Line line, Font font, Component[] glyphs, float[] offsets) {
         Lane(Line line, Font font, float scale) {
-            this(line, font, line.glyphs(), line.offsets(font, scale), line.insets(font, scale));
+            this(line, font, line.glyphs(), line.offsets(font, scale));
         }
 
         float left(int index) {
-            return offsets[index] + insets[index];
+            return offsets[index];
         }
 
         boolean holds(int index, Lane other) {
@@ -96,7 +97,7 @@ public final class MorphText {
             boolean tail = index >= now.glyphs().length - suffix;
             if (index >= prefix && !tail && !now.holds(index, was)) continue;
             float from = tail ? was.left(index + shift) : now.left(index);
-            Ink.label(graphics, now.font(), now.glyphs()[index], current.weight(),
+            Ink.glyph(graphics, now.font(), now.glyphs()[index], current.weight(),
                     x + Anim.lerp(from, now.left(index), slide) * scale, y, scale, color, blur);
         }
     }
@@ -112,7 +113,7 @@ public final class MorphText {
             float share = Anim.smoothstep(0.0f, 1.0f, (clock - wave) / GLYPH_SECONDS);
             float shown = direction > 0.0f ? share : 1.0f - share;
             float lift = direction > 0.0f ? 1.0f - share : -share;
-            Ink.label(graphics, lane.font(), lane.glyphs()[index], lane.line().weight(), x + lane.left(index) * scale,
+            Ink.glyph(graphics, lane.font(), lane.glyphs()[index], lane.line().weight(), x + lane.left(index) * scale,
                     y + lift * TRAVEL_UNITS * scale, scale, Colors.alpha(color, shown), Math.max(blur, 1.0f - shown));
         }
     }

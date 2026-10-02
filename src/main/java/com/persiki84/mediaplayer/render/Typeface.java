@@ -10,9 +10,9 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 // WHY: шрифт тот же, что в BattleCraft (Inter, size 8.5), и хранится копиями с передискретизацией
-// WHY: от 1 до 6 с шагом 0.25. Глиф чёткий, только когда его растр ложится на экран один к одному:
-// WHY: копия с передискретизацией больше плотности строки ужимается и мылится, меньше - растягивается.
-// WHY: Берётся ближайшая копия к настоящей плотности физических пикселей строки
+// WHY: от 1 до 6 с шагом 0.25. Атлас читается со сглаживанием (SoftGlyphs), и берётся ближайшая
+// WHY: копия не меньше плотности строки: растр только уменьшается, а уменьшение со сглаживанием
+// WHY: даёт мягкие буквы без зерна на любом дробном размере
 public final class Typeface {
     private static final float FINEST = 1.0f;
     private static final float STEP = 0.25f;
@@ -47,17 +47,13 @@ public final class Typeface {
         return cache.computeIfAbsent(text, plain -> plain.copy().withStyle(style -> style.withFont(face)));
     }
 
-    // WHY: атлас шрифта читается без сглаживания (NEAREST), и растр копии, чуть больше или меньше
-    // WHY: плотности строки, дублирует или теряет столбцы пикселей - текст идёт зерном. Кегль строки
-    // WHY: в покое поэтому подгоняется к ближайшей копии, чтобы растр лёг на экран один к одному;
-    // WHY: ванильный пиксельный шрифт подгоняется к целому числу пикселей вверх
+    // WHY: ванильный шрифт пиксельный и читается без сглаживания, поэтому его кегль подгоняется к
+    // WHY: целому числу пикселей вверх; шрифт мода читается со сглаживанием и кегль не трогает
     public static float fit(float scale, float basePixels) {
         float density = scale * basePixels;
-        if (basePixels <= 0.0f || density <= 0.0f) return scale;
-        if (!modded()) return Math.max(1.0f, (float) Math.ceil(density - 0.05f)) / basePixels;
-        if (density < FINEST || density > FINEST + STEP * (STEPS - 1)) return scale;
+        if (modded() || basePixels <= 0.0f || density <= 0.0f) return scale;
 
-        return (FINEST + STEP * Math.round((density - FINEST) / STEP)) / basePixels;
+        return Math.max(1.0f, (float) Math.ceil(density - 0.05f)) / basePixels;
     }
 
     // WHY: игра округляет ширину буквы до пикселя растра той копии, которой строка рисуется, поэтому
@@ -68,7 +64,7 @@ public final class Typeface {
     }
 
     private static FontDescription face(Weight weight, float pixelsPerUnit) {
-        int index = Math.round((pixelsPerUnit - FINEST) / STEP);
+        int index = (int) Math.ceil((pixelsPerUnit - FINEST) / STEP - 0.01f);
         return faces[weight.ordinal()][Math.max(0, Math.min(STEPS - 1, index))];
     }
 }

@@ -4,15 +4,11 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 
 public final class Line {
-    private static final String DIGITS = "0123456789";
-    private static final Component[] DIGIT_GLYPHS = split(DIGITS);
-
     private final Weight weight;
     private String raw = "";
     private Component value = Component.empty();
     private Component[] glyphs = new Component[0];
     private float[] offsets = new float[0];
-    private float[] insets = new float[0];
     private float width;
     private Object measuredFace;
 
@@ -66,43 +62,19 @@ public final class Line {
         return offsets;
     }
 
-    public float[] insets(Font font, float scale) {
-        measure(font, scale);
-        return insets;
-    }
-
-    // WHY: цифры ставятся в клетку ширины самой широкой цифры, как табличные цифры шрифта: иначе
-    // WHY: таймер на каждой секунде менял ширину, и всё, что стоит после изменившейся цифры, ехало
     private void measure(Font font, float scale) {
         float pixels = scale * Ink.base();
         Object face = Typeface.faceKey(weight, pixels);
         if (face == measuredFace) return;
 
         measuredFace = face;
-        float cell = digitCell(font, pixels);
         offsets = new float[glyphs.length];
-        insets = new float[glyphs.length];
         float cursor = 0.0f;
         for (int index = 0; index < glyphs.length; index++) {
-            float advance = font.width(Typeface.styled(glyphs[index], weight, pixels));
-            boolean digit = DIGITS.contains(glyphs[index].getString());
-            insets[index] = digit ? wholePixels((cell - advance) / 2.0f, pixels) : 0.0f;
             offsets[index] = cursor;
-            cursor += digit ? cell : advance;
+            cursor += font.width(Typeface.styled(glyphs[index], weight, pixels));
         }
         width = cursor;
-    }
-
-    private float digitCell(Font font, float pixels) {
-        float widest = 0.0f;
-        for (Component digit : DIGIT_GLYPHS) {
-            widest = Math.max(widest, font.width(Typeface.styled(digit, weight, pixels)));
-        }
-        return widest;
-    }
-
-    private static float wholePixels(float units, float pixels) {
-        return pixels <= 0.0f ? units : Math.round(units * pixels) / pixels;
     }
 
     private static Component[] split(String text) {
