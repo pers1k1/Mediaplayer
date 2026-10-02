@@ -18,6 +18,7 @@ public final class Typeface {
     private static final float STEP = 0.25f;
     private static final int STEPS = 21;
     private static final int CACHE_LIMIT = 512;
+    private static final Object VANILLA = new Object();
     private static final Map<FontDescription, Map<Component, Component>> styled = new IdentityHashMap<>();
     private static final FontDescription[][] faces = new FontDescription[Weight.values().length][STEPS];
 
@@ -59,8 +60,11 @@ public final class Typeface {
         return (FINEST + STEP * Math.round((density - FINEST) / STEP)) / basePixels;
     }
 
-    public static Component measured(Component text, Weight weight) {
-        return styled(text, weight, 1.0f);
+    // WHY: игра округляет ширину буквы до пикселя растра той копии, которой строка рисуется, поэтому
+    // WHY: мерить строку можно только той же копией: копия 1.0 давала другую ширину, и на длинном
+    // WHY: названии бегущая строка и раскладка острова съезжали на несколько единиц
+    public static Object faceKey(Weight weight, float pixelsPerUnit) {
+        return modded() ? face(weight, pixelsPerUnit) : VANILLA;
     }
 
     private static FontDescription face(Weight weight, float pixelsPerUnit) {

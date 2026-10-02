@@ -7,11 +7,11 @@ public final class Line {
     private final Weight weight;
     private String raw = "";
     private Component value = Component.empty();
-    private Component[] glyphs;
+    private Component[] glyphs = new Component[0];
     private float[] offsets = new float[0];
     private float[] advances = new float[0];
-    private float width = -1.0f;
-    private boolean measuredModded;
+    private float width;
+    private Object measuredFace;
 
     public Line(Weight weight) {
         this.weight = weight;
@@ -22,18 +22,15 @@ public final class Line {
 
         raw = next;
         value = Component.literal(next);
-        forget();
+        glyphs = split(next);
+        measuredFace = null;
     }
 
     public void take(Line other) {
         raw = other.raw;
         value = other.value;
-        forget();
-    }
-
-    private void forget() {
-        width = -1.0f;
-        glyphs = null;
+        glyphs = other.glyphs;
+        measuredFace = null;
     }
 
     public String raw() {
@@ -52,46 +49,48 @@ public final class Line {
         return raw.isEmpty();
     }
 
-    public float width(Font font) {
-        refresh();
-        if (width < 0.0f) width = font.width(Typeface.measured(value, weight));
-        return width;
+    public float width(Font font, float scale) {
+        measure(font, scale);
+        return width * scale;
     }
 
-    public Component[] glyphs(Font font) {
-        refresh();
-        if (glyphs == null) split(font);
+    public Component[] glyphs() {
         return glyphs;
     }
 
-    public float[] offsets(Font font) {
-        glyphs(font);
+    public float[] offsets(Font font, float scale) {
+        measure(font, scale);
         return offsets;
     }
 
-    public float[] advances(Font font) {
-        glyphs(font);
+    public float[] advances(Font font, float scale) {
+        measure(font, scale);
         return advances;
     }
 
-    private void refresh() {
-        if (measuredModded == Typeface.modded()) return;
+    private void measure(Font font, float scale) {
+        float pixels = scale * Ink.base();
+        Object face = Typeface.faceKey(weight, pixels);
+        if (face == measuredFace) return;
 
-        measuredModded = Typeface.modded();
-        forget();
-    }
-
-    private void split(Font font) {
-        int[] points = raw.codePoints().toArray();
-        glyphs = new Component[points.length];
-        offsets = new float[points.length];
-        advances = new float[points.length];
+        measuredFace = face;
+        offsets = new float[glyphs.length];
+        advances = new float[glyphs.length];
         float cursor = 0.0f;
-        for (int index = 0; index < points.length; index++) {
-            glyphs[index] = Component.literal(new String(Character.toChars(points[index])));
-            advances[index] = font.width(Typeface.measured(glyphs[index], weight));
+        for (int index = 0; index < glyphs.length; index++) {
+            advances[index] = font.width(Typeface.styled(glyphs[index], weight, pixels));
             offsets[index] = cursor;
             cursor += advances[index];
         }
+        width = cursor;
+    }
+
+    private static Component[] split(String text) {
+        int[] points = text.codePoints().toArray();
+        Component[] parts = new Component[points.length];
+        for (int index = 0; index < points.length; index++) {
+            parts[index] = Component.literal(new String(Character.toChars(points[index])));
+        }
+        return parts;
     }
 }
