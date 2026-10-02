@@ -18,6 +18,9 @@ public final class Ink {
     private static final int OUTER_TAPS = 10;
     private static final float INNER_SHARE = 0.55f;
     private static final float INNER_REACH = 0.45f;
+    private static final int GLOW_TAPS = 8;
+    private static final float GLOW_REACH = 0.7f;
+    private static final float GLOW_SHARE = 0.03f;
     private static final float SHARP = 0.02f;
     private static final float LINE_UNITS = 9.0f;
     private static final float FADE_LINES = 1.8f;
@@ -59,6 +62,7 @@ public final class Ink {
                               float scale, int color, float blur, boolean onGrid) {
         if ((color >>> 24) < 3) return;
         if (blur <= SHARP) {
+            glow(graphics, font, text, weight, x, y, scale, color);
             stamp(graphics, font, text, weight, x, y, scale, color, onGrid);
             return;
         }
@@ -69,6 +73,16 @@ public final class Ink {
                 reach * INNER_REACH, INNER_TAPS);
         ring(graphics, font, text, weight, x, y, scale,
                 Colors.alpha(color, spread * (1.0f - INNER_SHARE) / OUTER_TAPS), reach, OUTER_TAPS);
+    }
+
+    // WHY: под буквой лежит лёгкое свечение её же цвета: кольцо прозрачных копий, сумма которых не
+    // WHY: доходит до четверти яркости, поэтому это мягкий ореол, а не обводка
+    private static void glow(GuiGraphics graphics, Font font, Component text, Weight weight, float x, float y,
+                             float scale, int color) {
+        if (!Typeface.modded()) return;
+
+        ring(graphics, font, text, weight, x, y, scale, Colors.alpha(color, GLOW_SHARE), GLOW_REACH * scale,
+                GLOW_TAPS);
     }
 
     // WHY: к целому физическому пикселю привязывается только начало строки, а буквы внутри стоят по

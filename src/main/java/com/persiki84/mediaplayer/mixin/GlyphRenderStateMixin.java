@@ -1,6 +1,8 @@
 package com.persiki84.mediaplayer.mixin;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.textures.GpuTextureView;
+import com.persiki84.mediaplayer.render.GlassPipelines;
 import com.persiki84.mediaplayer.render.SoftGlyphs;
 import net.minecraft.client.gui.font.TextRenderable;
 import net.minecraft.client.gui.render.TextureSetup;
@@ -23,6 +25,11 @@ public abstract class GlyphRenderStateMixin {
         GpuTextureView view = renderable.textureView();
         if (!SoftGlyphs.soft(view)) return;
 
-        callback.setReturnValue(TextureSetup.singleTextureWithLightmap(view, SoftGlyphs.sampler()));
+        callback.setReturnValue(TextureSetup.singleTexture(view, SoftGlyphs.sampler()));
+    }
+
+    @Inject(method = "pipeline", at = @At("HEAD"), cancellable = true)
+    private void mediaplayer$softPipeline(CallbackInfoReturnable<RenderPipeline> callback) {
+        if (SoftGlyphs.soft(renderable.textureView())) callback.setReturnValue(GlassPipelines.SOFT_TEXT);
     }
 }

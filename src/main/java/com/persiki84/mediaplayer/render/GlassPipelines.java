@@ -3,6 +3,7 @@ package com.persiki84.mediaplayer.render;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import com.persiki84.mediaplayer.Mediaplayer;
@@ -31,12 +32,14 @@ public final class GlassPipelines {
     public static final RenderPipeline GLASS = register("glass", SHAPE_FORMAT, true);
     public static final RenderPipeline SHAPE = register("shape", SHAPE_FORMAT, false);
     public static final RenderPipeline IMAGE = register("image", IMAGE_FORMAT, true);
+    public static final RenderPipeline SOFT_TEXT = register("soft_text",
+            DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, true);
 
     private GlassPipelines() {}
 
     public static void load() {
-        Mediaplayer.LOGGER.debug("Pipelines ready: {}, {}, {}", GLASS.getLocation(), SHAPE.getLocation(),
-                IMAGE.getLocation());
+        Mediaplayer.LOGGER.debug("Pipelines ready: {}, {}, {}, {}", GLASS.getLocation(), SHAPE.getLocation(),
+                IMAGE.getLocation(), SOFT_TEXT.getLocation());
     }
 
     private static RenderPipeline register(String name, VertexFormat format, boolean sampled) {
