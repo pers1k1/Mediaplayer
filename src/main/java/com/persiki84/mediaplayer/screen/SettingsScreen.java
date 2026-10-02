@@ -123,8 +123,8 @@ public final class SettingsScreen extends Screen {
         Component credit = Component.translatable("mediaplayer.settings.credit");
         float creditWidth = Ink.width(font, credit, Weight.REGULAR, Ink.fit(NOTE_SCALE));
         Ink.label(graphics, font, credit, Weight.REGULAR, panelX + (panelWidth - creditWidth) / 2.0f,
-                panelY + panelHeight - PAD - BUTTON_HEIGHT - 9, Ink.fit(NOTE_SCALE), Colors.alpha(Palette.INK_DIM, 0.6f),
-                0.0f);
+                panelY + panelHeight - PAD - BUTTON_HEIGHT - 9, Ink.fit(NOTE_SCALE),
+                Colors.alpha(Palette.INK_DIM, 0.6f), 0.0f);
         Component note = Component.translatable("mediaplayer.settings.drag_note");
         Ink.label(graphics, font, note, Weight.REGULAR, panelX + PAD + COLUMN + GUTTER,
                 panelY + HEADER + IslandDial.values().length * (row + 2) + 6, Ink.fit(NOTE_SCALE),

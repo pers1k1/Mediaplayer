@@ -50,11 +50,13 @@ final class IslandTimeline {
         float x = IslandContent.textX(flight);
         float y = flight.y(PILL_TIME_TOP, CARD_TIME_TOP);
         float share = flight.share();
-        Ink.label(graphics, flight.scene().font(), titles.pillRow.value(), Weight.REGULAR, x, y, Ink.fit(TIME_SCALE),
-                IslandContent.ink(fade * (1.0f - share)), flight.blur());
-        Ink.label(graphics, flight.scene().font(), titles.timing.value(), Weight.REGULAR, x, y, Ink.fit(TIME_SCALE),
-                IslandContent.ink(fade * share), flight.blur());
-        return titles.pillRow.width(flight.scene().font()) * Ink.fit(TIME_SCALE) + PILL_TIME_GAP;
+        float scale = Ink.fit(TIME_SCALE);
+        float slot = flight.measure().cardWidth();
+        int pillInk = IslandContent.ink(fade * (1.0f - share));
+        titles.pillRow.draw(graphics, flight.scene().font(), x, y, slot, scale, pillInk, flight.blur());
+        titles.timing.draw(graphics, flight.scene().font(), x, y, slot, scale, IslandContent.ink(fade * share),
+                flight.blur());
+        return titles.pillRow.line().width(flight.scene().font(), scale) + PILL_TIME_GAP;
     }
 
     private static void bar(IslandFlight flight, float left, float span, float fade) {

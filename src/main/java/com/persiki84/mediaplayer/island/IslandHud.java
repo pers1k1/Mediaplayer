@@ -96,7 +96,7 @@ public final class IslandHud {
         IslandFlight flight = new IslandFlight(scene, centerX - measure.pillWidth() / 2.0f,
                 centerY - PILL_HEIGHT / 2.0f, centerX - measure.cardWidth() / 2.0f, centerY - CARD_HEIGHT / 2.0f,
                 motion.flight(), motion.blur());
-        Ink.snapping(motion.resting() && !titles.swapping());
+        Ink.snapping(motion.resting());
         try {
             clip(graphics, x, y, width, height, () -> IslandContent.draw(flight));
             IslandCounter.draw(scene, x, y, width, height, 1.0f);

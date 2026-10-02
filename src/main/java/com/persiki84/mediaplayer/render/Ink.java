@@ -35,7 +35,11 @@ public final class Ink {
     }
 
     public static float width(Font font, Component text, Weight weight, float scale) {
-        return font.width(Typeface.measured(text, weight)) * scale;
+        return font.width(Typeface.styled(text, weight, scale * base())) * scale;
+    }
+
+    public static float base() {
+        return basePixels > 0.0f ? basePixels : Minecraft.getInstance().getWindow().getGuiScale();
     }
 
     public static void label(GuiGraphics graphics, Font font, Component text, Weight weight, float x, float y,
@@ -99,13 +103,12 @@ public final class Ink {
     }
 
     public static float fit(float scale) {
-        float base = basePixels > 0.0f ? basePixels : Minecraft.getInstance().getWindow().getGuiScale();
-        return Typeface.fit(scale, base);
+        return Typeface.fit(scale, base());
     }
 
     public static void line(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
                             int color, float blur) {
-        float span = line.width(font) * scale;
+        float span = line.width(font, scale);
         if (span <= slot || blur > SHARP) {
             clipped(graphics, x, y, slot, scale, () -> label(graphics, font, line.value(), line.weight(), x, y, scale,
                     color, blur));
@@ -123,11 +126,11 @@ public final class Ink {
         float fade = Math.max(margin, Math.min(LINE_UNITS * scale * FADE_LINES, slot * FADE_BOX_SHARE));
         float start = x - shift;
         float leftWidth = Math.min(fade, margin + shift * FADE_GROWTH);
-        float hiddenRight = Math.max(0.0f, start + line.width(font) * scale - x - slot);
+        float hiddenRight = Math.max(0.0f, start + line.width(font, scale) - x - slot);
         float rightWidth = Math.min(fade, margin + hiddenRight * FADE_GROWTH);
-        Component[] glyphs = line.glyphs(font);
-        float[] offsets = line.offsets(font);
-        float[] advances = line.advances(font);
+        Component[] glyphs = line.glyphs();
+        float[] offsets = line.offsets(font, scale);
+        float[] advances = line.advances(font, scale);
         for (int index = 0; index < glyphs.length; index++) {
             float left = start + offsets[index] * scale;
             float center = left + advances[index] * scale / 2.0f;
@@ -142,7 +145,7 @@ public final class Ink {
         return Math.min(LINE_UNITS * scale * MARGIN_LINES, slot * MARGIN_BOX_SHARE);
     }
 
-    private static void clipped(GuiGraphics graphics, float x, float y, float slot, float scale, Runnable body) {
+    static void clipped(GuiGraphics graphics, float x, float y, float slot, float scale, Runnable body) {
         float margin = margin(slot, scale) + BLUR_REACH * scale;
         int top = (int) Math.floor(y - LINE_UNITS * scale);
         int bottom = (int) Math.ceil(y + LINE_UNITS * scale * 2.0f);

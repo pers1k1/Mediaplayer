@@ -6,7 +6,6 @@ import com.persiki84.mediaplayer.color.Palette;
 import com.persiki84.mediaplayer.config.IslandFlag;
 import com.persiki84.mediaplayer.config.IslandSettings;
 import com.persiki84.mediaplayer.render.Ink;
-import com.persiki84.mediaplayer.render.Line;
 import com.persiki84.mediaplayer.render.Weight;
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -83,9 +82,8 @@ final class IslandContent {
         float scale = flight.mix(pillScale, Ink.fit(TITLE_CARD_SCALE));
         float top = flight.y(pillTop, CARD_TITLE_TOP);
         float x = textX(flight);
-        flight.scene().titles().swapped(flight.scene().titles().title, true, media, (Line line, float shown,
-                float change) -> Ink.line(flight.scene().graphics(), flight.scene().font(), line, x, top, slot, scale,
-                ink(shown), Math.max(flight.blur(), change)));
+        flight.scene().titles().title.draw(flight.scene().graphics(), flight.scene().font(), x, top, slot, scale,
+                ink(media), flight.blur());
     }
 
     private static void nick(IslandFlight flight, float slot, float top, float media) {
@@ -103,9 +101,8 @@ final class IslandContent {
         float x = textX(flight);
         float top = flight.y(PILL_TIME_TOP, CARD_ARTIST_TOP);
         float slot = slot(flight);
-        flight.scene().titles().swapped(flight.scene().titles().artist, false, flight.share(), (Line line,
-                float shown, float change) -> Ink.line(flight.scene().graphics(), flight.scene().font(), line, x, top,
-                slot, Ink.fit(ARTIST_SCALE), ink(shown), Math.max(flight.blur(), change)));
+        flight.scene().titles().artist.draw(flight.scene().graphics(), flight.scene().font(), x, top, slot,
+                Ink.fit(ARTIST_SCALE), ink(flight.share()), flight.blur());
     }
 
     private static void bars(IslandFlight flight) {
