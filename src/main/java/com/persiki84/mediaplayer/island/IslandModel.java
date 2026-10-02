@@ -89,7 +89,7 @@ public final class IslandModel {
         retarget(fresh, live, now);
         if (fresh.present() && !fresh.blind()) IslandArt.accept(fresh.artStamp(), MediaBridge.artFile());
         IslandProgress.advance(track, delta);
-        IslandCoverSwap.advance(delta);
+        IslandFlip.advance(delta);
         IslandTone.advance(delta);
         shown.to(live ? 1.0f : 0.0f, delta);
         carded = live && !fresh.blind() && now < cardUntil && IslandSettings.on(IslandFlag.CARD);
@@ -108,6 +108,7 @@ public final class IslandModel {
             return;
         }
         if (dormant || !fresh.sameTrack(track)) {
+            if (!dormant) IslandOrder.note(track, track.elapsedMs(now), fresh);
             cardUntil = now + (long) (IslandSettings.dial(IslandDial.CARD_SECONDS) * 1000.0f);
         }
         dormant = false;
@@ -164,7 +165,8 @@ public final class IslandModel {
         carded = false;
         blinded.snap(0.0f);
         IslandProgress.forget();
-        IslandCoverSwap.forget();
+        IslandFlip.forget();
+        IslandOrder.forget();
         IslandArt.forget();
     }
 }

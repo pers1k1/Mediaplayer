@@ -10,6 +10,7 @@ import com.persiki84.mediaplayer.config.IslandSettings;
 import com.persiki84.mediaplayer.render.ImageState;
 import com.persiki84.mediaplayer.render.Paint;
 import com.persiki84.mediaplayer.render.QuadArea;
+import com.persiki84.mediaplayer.render.TurnedCard;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -19,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class IslandFace {
     private static final float SKIN = 64.0f;
+    private static final float EDGE_HAZE = 0.6f;
     private static final ImageState.UvArea WHOLE = new ImageState.UvArea(0.0f, 0.0f, 1.0f, 1.0f);
     private static final ImageState.UvArea HEAD = new ImageState.UvArea(8.0f / SKIN, 8.0f / SKIN, 16.0f / SKIN,
             16.0f / SKIN);
@@ -42,16 +44,22 @@ public final class IslandFace {
         if (IslandSettings.on(IslandFlag.AVATAR)) head(graphics, centerX, centerY, size, alpha, blur);
     }
 
+    // WHY: до середины поворота видна уходящая обложка, после неё пришедшая, развёрнутая на пол-оборота
+    // WHY: назад, так что она доворачивается до анфаса; на ребре обе чуть размыты
     private static void cover(GuiGraphics graphics, float centerX, float centerY, float size, float alpha,
                               float blur) {
-        if (!IslandCoverSwap.swapping() || !IslandArt.carries()) {
+        if (!IslandFlip.turning() || !IslandArt.carries()) {
             picture(graphics, IslandArt.texture(), centerX, centerY, size, alpha, blur);
             return;
         }
-        float share = IslandCoverSwap.share();
-        float haze = Math.max(blur, IslandCoverSwap.haze());
-        picture(graphics, IslandArt.carriedTexture(), centerX, centerY, size, alpha * (1.0f - share), haze);
-        picture(graphics, IslandArt.texture(), centerX, centerY, size, alpha * share, haze);
+        float angle = IslandFlip.angle();
+        boolean leaving = Math.abs(angle) < Math.PI / 2.0;
+        Identifier id = leaving ? IslandArt.carriedTexture() : IslandArt.texture();
+        float shown = leaving ? angle : angle - Math.signum(angle) * (float) Math.PI;
+        AbstractTexture texture = Minecraft.getInstance().getTextureManager().getTexture(id);
+        TurnedCard.draw(graphics, new TurnedCard.Face(texture.getTextureView(), texture.getSampler(),
+                IslandImage.CORNER_SHARE, alpha, Math.max(blur, IslandFlip.haze() * EDGE_HAZE)), centerX, centerY,
+                size, shown);
     }
 
     private static void picture(GuiGraphics graphics, Identifier id, float centerX, float centerY, float size,

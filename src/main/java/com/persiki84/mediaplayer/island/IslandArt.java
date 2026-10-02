@@ -164,6 +164,6 @@ public final class IslandArt {
         slot = next;
         edge = picture.edge();
         ready = true;
-        if (carried) IslandCoverSwap.begin();
+        if (carried) IslandFlip.begin(IslandOrder.pending());
     }
 }

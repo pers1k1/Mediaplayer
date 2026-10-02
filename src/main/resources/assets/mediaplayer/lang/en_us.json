@@ -25,6 +25,8 @@
   "mediaplayer.settings.flag.fps.hint": "Frame rate counter",
   "mediaplayer.settings.flag.ping": "Ping",
   "mediaplayer.settings.flag.ping.hint": "Latency to the server, colored when it gets slow",
+  "mediaplayer.settings.flag.statsWithMedia": "FPS and ping with music",
+  "mediaplayer.settings.flag.statsWithMedia.hint": "Keep the FPS and ping capsule under the island while music plays",
   "mediaplayer.settings.flag.cover": "Cover art",
   "mediaplayer.settings.flag.cover.hint": "Cover of the playing track in place of the head",
   "mediaplayer.settings.flag.coverTint": "Cover colors",
@@ -54,6 +56,6 @@
   "mediaplayer.settings.dial.visualizerLight.hint": "Brightness of colors taken from the cover, 1 is normal, from %s to %s",
   "mediaplayer.settings.dial.visualizerColor": "Cover saturation",
   "mediaplayer.settings.dial.visualizerColor.hint": "Saturation of colors taken from the cover, 1 is normal, from %s to %s",
-  "mediaplayer.settings.dial.flipSpeed": "Cover change speed",
-  "mediaplayer.settings.dial.flipSpeed.hint": "How fast the old cover melts into the new one on a track change, 1 is normal, from %s to %s"
+  "mediaplayer.settings.dial.flipSpeed": "Cover flip speed",
+  "mediaplayer.settings.dial.flipSpeed.hint": "How fast the cover turns over on a track change, 1 is normal, from %s to %s"
 }
