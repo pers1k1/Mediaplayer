@@ -19,15 +19,18 @@ public final class IslandMotion {
     private static final float OPEN_DAMPING = 0.815f;
     private static final float CLOSE_RESPONSE = 0.47f;
     private static final float CLOSE_DAMPING = 0.86f;
-    private static final float CONTENT_OUT = 0.12f;
-    private static final float BLUR_IN = 0.03f;
-    private static final float CARD_IN_FROM = 0.02f;
-    private static final float CARD_IN_TO = 0.20f;
-    private static final float CARD_SHARP_FROM = 0.05f;
-    private static final float CARD_SHARP_TO = 0.30f;
-    private static final float PILL_IN_FROM = 0.15f;
-    private static final float PILL_IN_TO = 0.28f;
-    private static final float PILL_SHARP_TO = 0.32f;
+    // WHY: владелец 03.10.2026: «всё окно размывалось при открытии и закрытии», элементы не убираются.
+    // WHY: Остров размывается целиком одной кривой на весь ход, а обе раскладки перетекают внахлёст
+    // WHY: под её пиком, поэтому пустого стекла между таблеткой и карточкой нет ни в один кадр
+    private static final float BLUR_RISE = 0.12f;
+    private static final float BLUR_FALL = 0.2f;
+    private static final float OPEN_TAIL = 0.32f;
+    private static final float CLOSE_SPAN = 0.36f;
+    private static final float OPEN_SWAP_MIN = 0.02f;
+    private static final float OPEN_SWAP_EARLY = 0.08f;
+    private static final float OPEN_SWAP_LATE = 0.12f;
+    private static final float CLOSE_SWAP_FROM = 0.04f;
+    private static final float CLOSE_SWAP_TO = 0.22f;
 
     private static final float SWELL_RESPONSE = 0.35f;
     private static final float SWELL_DAMPING = 0.6f;
@@ -54,10 +57,10 @@ public final class IslandMotion {
     private float swellClock = SWELL_HOLD;
     private float pillFrom = 1.0f;
     private float cardFrom;
+    private float blurFrom;
     private float pillAlpha = 1.0f;
-    private float pillBlur;
     private float cardAlpha;
-    private float cardBlur;
+    private float blur;
 
     public void advance(boolean wanted, IslandMeasure measure, float delta) {
         if (wanted != open) depart(wanted, measure);
@@ -73,6 +76,7 @@ public final class IslandMotion {
     private void depart(boolean wanted, IslandMeasure measure) {
         pillFrom = pillAlpha;
         cardFrom = cardAlpha;
+        blurFrom = blur;
         open = wanted;
         phase = wanted ? Phase.OPEN : Phase.CLOSE;
         boolean compact = width.get() <= measure.pillWidth() * SQUEEZE_SKIP;
@@ -103,26 +107,29 @@ public final class IslandMotion {
     }
 
     private void opening() {
-        pillAlpha = pillFrom * (1.0f - Anim.smoothstep(0.0f, CONTENT_OUT, clock));
-        pillBlur = Anim.smoothstep(0.0f, CONTENT_OUT, clock);
-        cardAlpha = Math.max(cardFrom, Anim.smoothstep(lead + CARD_IN_FROM, lead + CARD_IN_TO, clock));
-        cardBlur = 1.0f - Anim.smoothstep(lead + CARD_SHARP_FROM, lead + CARD_SHARP_TO, clock);
-        if (clock >= lead + CARD_SHARP_TO) phase = Phase.REST;
+        float swap = Anim.smoothstep(Math.max(OPEN_SWAP_MIN, lead - OPEN_SWAP_EARLY), lead + OPEN_SWAP_LATE, clock);
+        pillAlpha = pillFrom * (1.0f - swap);
+        cardAlpha = cardFrom + (1.0f - cardFrom) * swap;
+        settle(lead + OPEN_TAIL);
     }
 
     private void closing() {
-        cardAlpha = cardFrom * (1.0f - Anim.smoothstep(0.0f, CONTENT_OUT, clock));
-        cardBlur = Anim.smoothstep(0.0f, BLUR_IN, clock);
-        pillAlpha = Math.max(pillFrom, Anim.smoothstep(PILL_IN_FROM, PILL_IN_TO, clock));
-        pillBlur = 1.0f - Anim.smoothstep(PILL_IN_FROM, PILL_SHARP_TO, clock);
-        if (clock >= PILL_SHARP_TO) phase = Phase.REST;
+        float swap = Anim.smoothstep(CLOSE_SWAP_FROM, CLOSE_SWAP_TO, clock);
+        cardAlpha = cardFrom * (1.0f - swap);
+        pillAlpha = pillFrom + (1.0f - pillFrom) * swap;
+        settle(CLOSE_SPAN);
+    }
+
+    private void settle(float span) {
+        float fall = 1.0f - Anim.smoothstep(span - BLUR_FALL, span, clock);
+        blur = Math.max(blurFrom * fall, Anim.smoothstep(0.0f, BLUR_RISE, clock) * fall);
+        if (clock >= span) phase = Phase.REST;
     }
 
     private void rest() {
         pillAlpha = open ? 0.0f : 1.0f;
         cardAlpha = open ? 1.0f : 0.0f;
-        pillBlur = 0.0f;
-        cardBlur = 0.0f;
+        blur = 0.0f;
     }
 
     public void snap(boolean wanted, IslandMeasure measure) {
@@ -153,16 +160,12 @@ public final class IslandMotion {
         return Anim.clamp01(pillAlpha);
     }
 
-    public float pillBlur() {
-        return Anim.clamp01(pillBlur);
+    public float blur() {
+        return Anim.clamp01(blur);
     }
 
     public float cardAlpha() {
         return Anim.clamp01(cardAlpha);
-    }
-
-    public float cardBlur() {
-        return Anim.clamp01(cardBlur);
     }
 
     public float pillScale(IslandMeasure measure) {

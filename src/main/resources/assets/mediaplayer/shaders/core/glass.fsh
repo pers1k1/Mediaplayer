@@ -12,6 +12,7 @@ uniform sampler2D Sampler0;
 in vec2 localPoint;
 flat in vec2 halfSize;
 flat in vec2 lens;
+flat in float blur;
 in vec4 vertexColor;
 
 out vec4 fragColor;
@@ -35,6 +36,9 @@ const float FRESNEL_RANGE = 30.0;
 const float FRESNEL_HARD = 0.2;
 const float FRESNEL_GLOW = 0.2;
 const vec4 BODY_TOP = vec4(0.1633, 0.1633, 0.2075, 0.7094);
+const float SOFT_SHARE = 1.0;
+const float FROST_SHARE = 0.5;
+const int FROST_TAPS = 8;
 const vec4 BODY_BOTTOM = vec4(0.1110, 0.1110, 0.1471, 0.7716);
 
 float squircleDistance(vec2 point, vec2 extent, float radius, float power) {
@@ -96,27 +100,46 @@ float shapePower(float radius) {
     return circular ? CIRCLE : SQUIRCLE;
 }
 
-vec3 refracted(vec2 spot, vec2 offset) {
+vec3 graded(vec3 glass) {
+    float grey = dot(glass, LUMA);
+    return clamp(mix(vec3(grey), glass, SATURATION) * BRIGHTNESS, 0.0, 1.0);
+}
+
+vec3 dispersed(vec2 spot, vec2 offset) {
     float spread = DISPERSION * 20.0;
     vec3 glass;
     glass.r = backdrop(spot + offset * (1.0 - (RED_INDEX - 1.0) * spread)).r;
     glass.g = backdrop(spot + offset).g;
     glass.b = backdrop(spot + offset * (1.0 - (BLUE_INDEX - 1.0) * spread)).b;
-    float grey = dot(glass, LUMA);
-    return clamp(mix(vec3(grey), glass, SATURATION) * BRIGHTNESS, 0.0, 1.0);
+    return glass;
+}
+
+// WHY: на ходу острова стекло становится матовым: к преломлённой выборке добавляется кольцо из
+// WHY: восьми соседних, и то, что видно сквозь стекло, размывается вместе с кромкой и содержимым
+vec3 frosted(vec2 spot, vec2 offset, float reach, vec2 screen) {
+    vec3 glass = dispersed(spot, offset);
+    if (reach < 0.5) {
+        return graded(glass);
+    }
+    for (int tap = 0; tap < FROST_TAPS; tap++) {
+        float angle = float(tap) * 6.2831853 / float(FROST_TAPS);
+        glass += texture(Sampler0, spot + offset + vec2(cos(angle), sin(angle)) * reach / screen).rgb;
+    }
+    return graded(glass / float(FROST_TAPS + 1));
 }
 
 void main() {
     float radius = lens.x;
     float edge = squircleDistance(localPoint, halfSize, radius, shapePower(radius));
-    float feather = max(1.0, fwidth(edge));
-    if (edge > feather) {
+    float smallest = min(halfSize.x, halfSize.y);
+    float feather = max(1.0, fwidth(edge)) + blur * smallest * SOFT_SHARE;
+    if (edge > feather * 0.5) {
         discard;
     }
     vec2 slope = vec2(dFdx(edge), dFdy(edge));
     float steep = length(slope);
     vec2 normal = steep < 1.0e-5 ? vec2(0.0) : slope / steep;
-    float reveal = clamp(-edge / feather + 0.5, 0.0, 1.0);
+    float reveal = clamp(0.5 - edge / feather, 0.0, 1.0);
 
     vec2 screen = vec2(textureSize(Sampler0, 0));
     float depth = max(0.0, -edge);
@@ -129,7 +152,8 @@ void main() {
     float rise = clamp((localPoint.y + halfSize.y) / max(1.0, halfSize.y * 2.0), 0.0, 1.0);
     vec4 body = mix(BODY_TOP, BODY_BOTTOM, rise);
     float bodyAlpha = clamp(body.a * DENSITY * reveal, 0.0, 1.0);
-    vec3 blended = mix(refracted(spot, offset), body.rgb, bodyAlpha);
+    vec3 seen = frosted(spot, offset, blur * smallest * FROST_SHARE, screen);
+    vec3 blended = mix(seen, body.rgb, bodyAlpha);
     float sheen = edge >= 0.0 ? 0.0 : rimGlow(edge) * FRESNEL_GLOW * 0.7 * min(1.0, steep) * reveal;
     blended = mix(blended, mix(vec3(1.0), body.rgb, bodyAlpha * 0.5), clamp(sheen, 0.0, 1.0));
 

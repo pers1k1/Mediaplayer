@@ -20,6 +20,8 @@ public final class IslandHud {
     private static final IslandMeasure measure = new IslandMeasure();
     private static final IslandMotion motion = new IslandMotion();
 
+    private static final float BLUR_REACH = 3.0f;
+
     private static long preparedFrame = -1L;
     private static boolean primed;
 
@@ -84,14 +86,16 @@ public final class IslandHud {
         GuiGraphics graphics = scene.graphics();
         float width = motion.width();
         float height = motion.height();
-        Paint.glass(graphics, x, y, width, height, motion.radius(), 1.0f);
-        clip(graphics, x, y, width, height, () -> {
+        float blur = motion.blur();
+        Paint.glass(graphics, x, y, width, height, motion.radius(), 1.0f, blur);
+        float reach = blur * BLUR_REACH;
+        clip(graphics, x - reach, y - reach, width + reach * 2.0f, height + reach * 2.0f, () -> {
             layer(graphics, x + width / 2.0f, y + height / 2.0f, motion.pillScale(measure), () ->
                     IslandPill.draw(scene, x + (width - measure.pillWidth()) / 2.0f, y + (height - PILL_HEIGHT) / 2.0f,
-                            motion.pillAlpha(), motion.pillBlur()));
+                            motion.pillAlpha(), blur));
             layer(graphics, x + width / 2.0f, y + height / 2.0f, motion.cardScale(measure), () ->
                     IslandCard.draw(scene, x + (width - measure.cardWidth()) / 2.0f, y + (height - CARD_HEIGHT) / 2.0f,
-                            motion.cardAlpha(), motion.cardBlur()));
+                            motion.cardAlpha(), blur));
         });
         IslandCounter.draw(scene, x, y, width, height, 1.0f);
     }

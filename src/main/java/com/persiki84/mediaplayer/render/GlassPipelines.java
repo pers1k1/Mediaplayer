@@ -17,6 +17,16 @@ public final class GlassPipelines {
             .add("Corner", VertexFormatElement.UV2)
             .build();
 
+    public static final VertexFormat GLASS_FORMAT = VertexFormat.builder()
+            .add("Position", VertexFormatElement.POSITION)
+            .add("Color", VertexFormatElement.COLOR)
+            .add("Local", VertexFormatElement.UV0)
+            .add("HalfSize", VertexFormatElement.UV1)
+            .add("Corner", VertexFormatElement.UV2)
+            .add("Blur", VertexFormatElement.NORMAL)
+            .padding(1)
+            .build();
+
     public static final VertexFormat IMAGE_FORMAT = VertexFormat.builder()
             .add("Position", VertexFormatElement.POSITION)
             .add("Color", VertexFormatElement.COLOR)
@@ -28,7 +38,7 @@ public final class GlassPipelines {
             .add("Corner", VertexFormatElement.LINE_WIDTH)
             .build();
 
-    public static final RenderPipeline GLASS = register("glass", SHAPE_FORMAT, true);
+    public static final RenderPipeline GLASS = register("glass", GLASS_FORMAT, true);
     public static final RenderPipeline SHAPE = register("shape", SHAPE_FORMAT, false);
     public static final RenderPipeline IMAGE = register("image", IMAGE_FORMAT, true);
 
