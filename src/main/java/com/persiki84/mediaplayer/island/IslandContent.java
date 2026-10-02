@@ -72,14 +72,15 @@ final class IslandContent {
         if (slot <= MIN_SLOT) return;
 
         float media = measure.media();
-        float nickTop = Ink.centerY(0.0f, PILL_HEIGHT, NICK_SCALE);
-        float pillTitle = Anim.lerp(PILL_TITLE_TOP, Ink.centerY(0.0f, PILL_HEIGHT, TITLE_PILL_SCALE), measure.blind());
+        float nickTop = Ink.centerY(0.0f, PILL_HEIGHT, Ink.fit(NICK_SCALE));
+        float titleScale = Ink.fit(TITLE_PILL_SCALE);
+        float pillTitle = Anim.lerp(PILL_TITLE_TOP, Ink.centerY(0.0f, PILL_HEIGHT, titleScale), measure.blind());
         float pillTop = Anim.lerp(nickTop, pillTitle, media);
         if (IslandSettings.on(IslandFlag.NICK) && media < 0.98f) nick(flight, slot, pillTop, media);
         if (!IslandSettings.on(IslandFlag.TITLE) || media <= 0.02f) return;
 
-        float pillScale = TITLE_PILL_SCALE * Anim.lerp(NICK_SCALE / TITLE_PILL_SCALE, 1.0f, media);
-        float scale = flight.mix(pillScale, TITLE_CARD_SCALE);
+        float pillScale = titleScale * Anim.lerp(Ink.fit(NICK_SCALE) / titleScale, 1.0f, media);
+        float scale = flight.mix(pillScale, Ink.fit(TITLE_CARD_SCALE));
         float top = flight.y(pillTop, CARD_TITLE_TOP);
         float x = textX(flight);
         flight.scene().titles().swapped(flight.scene().titles().title, true, media, (Line line, float shown,
@@ -88,7 +89,7 @@ final class IslandContent {
     }
 
     private static void nick(IslandFlight flight, float slot, float top, float media) {
-        float scale = NICK_SCALE * Anim.lerp(1.0f, TITLE_PILL_SCALE / NICK_SCALE, media);
+        float scale = Ink.fit(NICK_SCALE) * Anim.lerp(1.0f, Ink.fit(TITLE_PILL_SCALE) / Ink.fit(NICK_SCALE), media);
         GuiGraphics graphics = flight.scene().graphics();
         Ink.label(graphics, flight.scene().font(), IslandModel.nick(), Weight.SEMIBOLD, textX(flight),
                 flight.pillY() + top, scale, ink((1.0f - media) * (1.0f - flight.share())), flight.blur());
@@ -104,7 +105,7 @@ final class IslandContent {
         float slot = slot(flight);
         flight.scene().titles().swapped(flight.scene().titles().artist, false, flight.share(), (Line line,
                 float shown, float change) -> Ink.line(flight.scene().graphics(), flight.scene().font(), line, x, top,
-                slot, ARTIST_SCALE, ink(shown), Math.max(flight.blur(), change)));
+                slot, Ink.fit(ARTIST_SCALE), ink(shown), Math.max(flight.blur(), change)));
     }
 
     private static void bars(IslandFlight flight) {

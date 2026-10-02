@@ -7,8 +7,6 @@ import com.persiki84.mediaplayer.render.Weight;
 
 public final class IslandTitles {
     private static final float SWAP_SECONDS = 0.45f;
-    private static final float LEAVE_UNTIL = 0.6f;
-    private static final float ENTER_FROM = 0.3f;
 
     final Line title = new Line(Weight.SEMIBOLD);
     final Line artist = new Line(Weight.REGULAR);
@@ -70,17 +68,18 @@ public final class IslandTitles {
         return shown.durationMs() <= 0L;
     }
 
-    // WHY: новое значение не уезжает и не подменяется, а перетекает на месте: старое размывается и
-    // WHY: гаснет, новое проявляется из размытия, и обе строки внахлёст стоят в одном месте
+    // WHY: новое значение не уезжает и не подменяется, а перетекает на месте одной долей: старое
+    // WHY: гаснет ровно настолько, насколько проявилось новое, так что строка не пустеет ни в один
+    // WHY: кадр, а размытие обеих растёт к середине перехода и к концу снимается
     void swapped(Line now, boolean titleRow, float alpha, Stroke stroke) {
         if (swap >= 1.0f) {
             stroke.draw(now, alpha, 0.0f);
             return;
         }
-        float leave = Anim.smoothstep(0.0f, LEAVE_UNTIL, swap);
-        float enter = Anim.smoothstep(ENTER_FROM, 1.0f, swap);
-        stroke.draw(titleRow ? leavingTitle : leavingArtist, alpha * (1.0f - leave), leave);
-        stroke.draw(now, alpha * enter, 1.0f - enter);
+        float share = Anim.smoothstep(0.0f, 1.0f, swap);
+        float haze = 4.0f * share * (1.0f - share);
+        stroke.draw(titleRow ? leavingTitle : leavingArtist, alpha * (1.0f - share), haze);
+        stroke.draw(now, alpha * share, haze);
     }
 
     public boolean swapping() {

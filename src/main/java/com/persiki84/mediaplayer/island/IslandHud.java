@@ -32,8 +32,13 @@ public final class IslandHud {
             IslandBounds.hide();
             return;
         }
-        prepare(minecraft.font);
-        place(new IslandScene(graphics, minecraft.font, titles, measure));
+        Ink.basePixels(minecraft.getWindow().getGuiScale() * IslandSettings.placement().scale());
+        try {
+            prepare(minecraft.font);
+            place(new IslandScene(graphics, minecraft.font, titles, measure));
+        } finally {
+            Ink.basePixels(0.0f);
+        }
     }
 
     private static void prepare(Font font) {

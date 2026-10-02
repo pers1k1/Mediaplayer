@@ -24,7 +24,6 @@ public final class IslandFace {
             16.0f / SKIN);
     private static final ImageState.UvArea HAT = new ImageState.UvArea(40.0f / SKIN, 8.0f / SKIN, 48.0f / SKIN,
             16.0f / SKIN);
-    private static final float FLIP_DRIFT = 0.08f;
 
     private IslandFace() {}
 
@@ -43,20 +42,25 @@ public final class IslandFace {
         if (IslandSettings.on(IslandFlag.AVATAR)) head(graphics, centerX, centerY, size, alpha, blur);
     }
 
-    // WHY: разворот идёт сжатием по ширине: до середины хода видна уходящая обложка, после неё
-    // WHY: пришедшая, а сторона сдвига показывает, листнул игрок вперёд или назад
     private static void cover(GuiGraphics graphics, float centerX, float centerY, float size, float alpha,
                               float blur) {
-        boolean turning = IslandFlip.turning() && IslandArt.carries();
-        Identifier id = !turning || IslandFlip.fresh() ? IslandArt.texture() : IslandArt.carriedTexture();
+        if (!IslandCoverSwap.swapping() || !IslandArt.carries()) {
+            picture(graphics, IslandArt.texture(), centerX, centerY, size, alpha, blur);
+            return;
+        }
+        float share = IslandCoverSwap.share();
+        float haze = Math.max(blur, IslandCoverSwap.haze());
+        picture(graphics, IslandArt.carriedTexture(), centerX, centerY, size, alpha * (1.0f - share), haze);
+        picture(graphics, IslandArt.texture(), centerX, centerY, size, alpha * share, haze);
+    }
+
+    private static void picture(GuiGraphics graphics, Identifier id, float centerX, float centerY, float size,
+                                float alpha, float blur) {
         AbstractTexture texture = Minecraft.getInstance().getTextureManager().getTexture(id);
-        float across = turning ? Math.max(0.02f, IslandFlip.squeeze()) : 1.0f;
-        float drift = turning ? IslandFlip.way() * (1.0f - across) * size * FLIP_DRIFT : 0.0f;
         float half = size / 2.0f;
-        QuadArea quad = new QuadArea(centerX + drift - half * across, centerY - half, centerX + drift + half * across,
-                centerY + half);
+        QuadArea quad = new QuadArea(centerX - half, centerY - half, centerX + half, centerY + half);
         Paint.image(graphics, texture.getTextureView(), texture.getSampler(), quad, WHOLE,
-                size * IslandImage.CORNER_SHARE * across, alpha, blur);
+                size * IslandImage.CORNER_SHARE, alpha, blur);
     }
 
     private static void head(GuiGraphics graphics, float centerX, float centerY, float size, float alpha,

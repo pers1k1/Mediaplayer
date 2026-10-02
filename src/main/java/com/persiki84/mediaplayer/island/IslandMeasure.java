@@ -56,20 +56,21 @@ public final class IslandMeasure {
         boolean visualized = IslandSettings.on(IslandFlag.VISUALIZER);
         waveSlot = visualized ? IslandGlyph.PILL_WIDTH + WAVE_GAP : 0.0f;
         cardWaveSlot = visualized ? IslandGlyph.CARD_WIDTH + WAVE_GAP : 0.0f;
-        timingPeak = held(timingPeak, titles.pillRow.width(font) * TIME_SCALE);
+        timingPeak = held(timingPeak, titles.pillRow.width(font) * Ink.fit(TIME_SCALE));
         pillWidth = Anim.lerp(idleWidth(font), mediaWidth(font, titles), media);
-        cardWidth = PAD + ART + GAP + Anim.clamp(Math.max(titles.title.width(font) * TITLE_CARD_SCALE,
-                titles.artist.width(font) * ARTIST_SCALE), CARD_TEXT_MIN, CARD_TEXT_MAX) + cardWaveSlot + PAD;
+        cardWidth = PAD + ART + GAP + Anim.clamp(Math.max(titles.title.width(font) * Ink.fit(TITLE_CARD_SCALE),
+                titles.artist.width(font) * Ink.fit(ARTIST_SCALE)), CARD_TEXT_MIN, CARD_TEXT_MAX) + cardWaveSlot + PAD;
     }
 
     private float idleWidth(Font font) {
         float nick = IslandSettings.on(IslandFlag.NICK)
-                ? Ink.width(font, IslandModel.nick(), Weight.SEMIBOLD, NICK_SCALE) : 0.0f;
+                ? Ink.width(font, IslandModel.nick(), Weight.SEMIBOLD, Ink.fit(NICK_SCALE)) : 0.0f;
         return PAD + face + GAP + nick + (stats > 0.0f ? STAT_INSET + stats : 0.0f) + PAD;
     }
 
     private float mediaWidth(Font font, IslandTitles titles) {
-        float title = PAD + face + GAP + Anim.clamp(titles.title.width(font) * TITLE_PILL_SCALE, TITLE_MIN, TITLE_MAX)
+        float titleWidth = titles.title.width(font) * Ink.fit(TITLE_PILL_SCALE);
+        float title = PAD + face + GAP + Anim.clamp(titleWidth, TITLE_MIN, TITLE_MAX)
                 + waveSlot + PAD;
         float timed = PAD + face + GAP + timingPeak + (titles.untimed() ? 0.0f : PILL_TIME_GAP + PILL_BAR_MIN) + PAD;
         return Math.max(title, timed * (1.0f - blind));
