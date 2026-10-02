@@ -6,15 +6,15 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
-// WHY: строка меняется по буквам, как числа и подписи в iOS: общее начало стоит на месте, общий
-// WHY: хвост доезжает до нового положения, а отличающиеся буквы сменяются волной слева направо -
-// WHY: старая уходит вверх и размывается, новая приходит снизу из размытия. У таймера так
-// WHY: меняется одна цифра, у названия трека буквы перетекают волной, и строка не пустеет ни на кадр
+// WHY: строка меняется по буквам, как числа и подписи в iOS: буквы, что стоят на своих местах в обеих
+// WHY: строках, не трогаются, общий хвост доезжает до нового положения, а остальные сменяются волной
+// WHY: слева направо - старая уходит вверх и размывается, новая приходит снизу из размытия. Ход
+// WHY: короткий, чтобы буквы не выходили за свою строку, и строка не пустеет ни на кадр
 public final class MorphText {
     private static final float GLYPH_SECONDS = 0.3f;
     private static final float STAGGER_SECONDS = 0.02f;
     private static final float STAGGER_LIMIT = 0.3f;
-    private static final float TRAVEL_UNITS = 3.5f;
+    private static final float TRAVEL_UNITS = 2.0f;
 
     private final Line current;
     private final Line previous;
@@ -49,9 +49,12 @@ public final class MorphText {
         return current;
     }
 
+    private int changedSpan() {
+        return Math.max(1, current.glyphs().length - prefix - suffix);
+    }
+
     private float duration() {
-        int changed = Math.max(current.glyphs().length, previous.glyphs().length) - prefix - suffix;
-        return GLYPH_SECONDS + Math.min(STAGGER_LIMIT, STAGGER_SECONDS * Math.max(0, changed - 1));
+        return GLYPH_SECONDS + Math.min(STAGGER_LIMIT, STAGGER_SECONDS * (changedSpan() - 1));
     }
 
     public void draw(GuiGraphics graphics, Font font, float x, float y, float slot, float scale, int color,
@@ -61,38 +64,55 @@ public final class MorphText {
             return;
         }
         Ink.clipped(graphics, x, y, slot, scale, () -> {
-            steady(graphics, font, x, y, scale, color, blur);
-            changed(graphics, font, current, x, y, scale, color, blur, 1.0f);
-            changed(graphics, font, previous, x, y, scale, color, blur, -1.0f);
+            Lane now = new Lane(current, font, scale);
+            Lane was = new Lane(previous, font, scale);
+            steady(graphics, now, was, x, y, scale, color, blur);
+            changed(graphics, now, was, x, y, scale, color, blur, 1.0f);
+            changed(graphics, was, now, x, y, scale, color, blur, -1.0f);
         });
     }
 
-    private void steady(GuiGraphics graphics, Font font, float x, float y, float scale, int color, float blur) {
-        Component[] glyphs = current.glyphs();
-        float[] now = current.offsets(font, scale);
-        float[] was = previous.offsets(font, scale);
-        float slide = Anim.smoothstep(0.0f, duration(), clock);
-        int shift = previous.glyphs().length - glyphs.length;
-        for (int index = 0; index < glyphs.length; index++) {
-            boolean shared = index < prefix || index >= glyphs.length - suffix;
-            if (!shared) continue;
-            float from = index < prefix ? now[index] : was[index + shift];
-            float left = x + Anim.lerp(from, now[index], slide) * scale;
-            Ink.label(graphics, font, glyphs[index], current.weight(), left, y, scale, color, blur);
+    private record Lane(Line line, Font font, Component[] glyphs, float[] offsets, float[] insets) {
+        Lane(Line line, Font font, float scale) {
+            this(line, font, line.glyphs(), line.offsets(font, scale), line.insets(font, scale));
+        }
+
+        float left(int index) {
+            return offsets[index] + insets[index];
+        }
+
+        boolean holds(int index, Lane other) {
+            return index < glyphs.length && index < other.glyphs.length
+                    && glyphs[index].getString().equals(other.glyphs[index].getString())
+                    && Math.abs(left(index) - other.left(index)) < 0.01f;
         }
     }
 
-    // WHY: направление +1 рисует приходящие буквы (снизу вверх, из размытия), -1 уходящие
-    private void changed(GuiGraphics graphics, Font font, Line line, float x, float y, float scale, int color,
+    private void steady(GuiGraphics graphics, Lane now, Lane was, float x, float y, float scale, int color,
+                        float blur) {
+        float slide = Anim.smoothstep(0.0f, duration(), clock);
+        int shift = was.glyphs().length - now.glyphs().length;
+        for (int index = 0; index < now.glyphs().length; index++) {
+            boolean tail = index >= now.glyphs().length - suffix;
+            if (index >= prefix && !tail && !now.holds(index, was)) continue;
+            float from = tail ? was.left(index + shift) : now.left(index);
+            Ink.label(graphics, now.font(), now.glyphs()[index], current.weight(),
+                    x + Anim.lerp(from, now.left(index), slide) * scale, y, scale, color, blur);
+        }
+    }
+
+    // WHY: направление +1 рисует приходящие буквы (снизу, из размытия), -1 уходящие (вверх); лишние
+    // WHY: буквы более длинной старой строки уходят вместе с последней новой, а не висят хвостом
+    private void changed(GuiGraphics graphics, Lane lane, Lane other, float x, float y, float scale, int color,
                          float blur, float direction) {
-        Component[] glyphs = line.glyphs();
-        float[] offsets = line.offsets(font, scale);
-        for (int index = prefix; index < glyphs.length - suffix; index++) {
-            float share = Anim.smoothstep(0.0f, 1.0f,
-                    (clock - Math.min(STAGGER_LIMIT, (index - prefix) * STAGGER_SECONDS)) / GLYPH_SECONDS);
+        int last = lane.glyphs().length - suffix;
+        for (int index = prefix; index < last; index++) {
+            if (lane.holds(index, other)) continue;
+            float wave = Math.min(STAGGER_LIMIT, Math.min(index - prefix, changedSpan() - 1) * STAGGER_SECONDS);
+            float share = Anim.smoothstep(0.0f, 1.0f, (clock - wave) / GLYPH_SECONDS);
             float shown = direction > 0.0f ? share : 1.0f - share;
-            float lift = direction > 0.0f ? (1.0f - share) : -share;
-            Ink.label(graphics, font, glyphs[index], line.weight(), x + offsets[index] * scale,
+            float lift = direction > 0.0f ? 1.0f - share : -share;
+            Ink.label(graphics, lane.font(), lane.glyphs()[index], lane.line().weight(), x + lane.left(index) * scale,
                     y + lift * TRAVEL_UNITS * scale, scale, Colors.alpha(color, shown), Math.max(blur, 1.0f - shown));
         }
     }

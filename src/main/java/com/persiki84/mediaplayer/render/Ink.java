@@ -109,35 +109,32 @@ public final class Ink {
     public static void line(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
                             int color, float blur) {
         float span = line.width(font, scale);
-        if (span <= slot || blur > SHARP) {
-            clipped(graphics, x, y, slot, scale, () -> label(graphics, font, line.value(), line.weight(), x, y, scale,
-                    color, blur));
-            return;
-        }
-        float shift = Marquee.shift(line.raw(), span - slot);
-        clipped(graphics, x, y, slot, scale, () -> scroll(graphics, font, line, x, y, slot, scale, color, shift));
+        boolean overflow = span > slot;
+        float shift = overflow && blur <= SHARP ? Marquee.shift(line.raw(), span - slot) : 0.0f;
+        clipped(graphics, x, y, slot, scale, () -> run(graphics, font, line, x, y, slot, scale, color, blur, shift,
+                overflow));
     }
 
-    // WHY: ванильное перо не знает маски, и ножницы режут букву пополам: вместо этого каждая буква
-    // WHY: бегущей строки гаснет по своему месту у края, а полоса затухания растёт с уехавшей частью
-    private static void scroll(GuiGraphics graphics, Font font, Line line, float x, float y, float slot,
-                               float scale, int color, float shift) {
+    // WHY: строка всегда ставится по буквам своей раскладкой, той же, что меряет ширину и морфит
+    // WHY: буквы: раскладка игры расходилась с ней на пиксель-другой в пробелах, и на смене значения
+    // WHY: строка вздрагивала. Бегущая строка гасит буквы у края по их месту, полоса растёт с уехавшей частью
+    private static void run(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
+                            int color, float blur, float shift, boolean overflow) {
         float margin = margin(slot, scale);
         float fade = Math.max(margin, Math.min(LINE_UNITS * scale * FADE_LINES, slot * FADE_BOX_SHARE));
         float start = x - shift;
         float leftWidth = Math.min(fade, margin + shift * FADE_GROWTH);
-        float hiddenRight = Math.max(0.0f, start + line.width(font, scale) - x - slot);
-        float rightWidth = Math.min(fade, margin + hiddenRight * FADE_GROWTH);
+        float rightWidth = Math.min(fade, margin + Math.max(0.0f, start + line.width(font, scale) - x - slot)
+                * FADE_GROWTH);
         Component[] glyphs = line.glyphs();
         float[] offsets = line.offsets(font, scale);
-        float[] advances = line.advances(font, scale);
+        float[] insets = line.insets(font, scale);
         for (int index = 0; index < glyphs.length; index++) {
-            float left = start + offsets[index] * scale;
-            float center = left + advances[index] * scale / 2.0f;
-            float shown = Math.min(Anim.clamp01((center - (x - margin)) / leftWidth),
-                    Anim.clamp01((x + slot + margin - center) / rightWidth));
+            float left = start + (offsets[index] + insets[index]) * scale;
+            float shown = overflow ? Math.min(Anim.clamp01((left - (x - margin)) / leftWidth),
+                    Anim.clamp01((x + slot + margin - left) / rightWidth)) : 1.0f;
             if (shown <= 0.01f) continue;
-            stamp(graphics, font, glyphs[index], line.weight(), left, y, scale, Colors.alpha(color, shown), snapping);
+            label(graphics, font, glyphs[index], line.weight(), left, y, scale, Colors.alpha(color, shown), blur);
         }
     }
 
