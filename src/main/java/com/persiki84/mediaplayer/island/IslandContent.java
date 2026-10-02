@@ -1,0 +1,125 @@
+package com.persiki84.mediaplayer.island;
+
+import com.persiki84.mediaplayer.anim.Anim;
+import com.persiki84.mediaplayer.color.Colors;
+import com.persiki84.mediaplayer.color.Palette;
+import com.persiki84.mediaplayer.config.IslandFlag;
+import com.persiki84.mediaplayer.config.IslandSettings;
+import com.persiki84.mediaplayer.render.Ink;
+import com.persiki84.mediaplayer.render.Line;
+import com.persiki84.mediaplayer.render.Weight;
+import net.minecraft.client.gui.GuiGraphics;
+
+import static com.persiki84.mediaplayer.island.IslandMeasure.ARTIST_SCALE;
+import static com.persiki84.mediaplayer.island.IslandMeasure.CARD_HEIGHT;
+import static com.persiki84.mediaplayer.island.IslandMeasure.GAP;
+import static com.persiki84.mediaplayer.island.IslandMeasure.NICK_SCALE;
+import static com.persiki84.mediaplayer.island.IslandMeasure.PAD;
+import static com.persiki84.mediaplayer.island.IslandMeasure.PILL_HEIGHT;
+import static com.persiki84.mediaplayer.island.IslandMeasure.STAT_INSET;
+import static com.persiki84.mediaplayer.island.IslandMeasure.TITLE_CARD_SCALE;
+import static com.persiki84.mediaplayer.island.IslandMeasure.TITLE_PILL_SCALE;
+
+final class IslandContent {
+    static final float PILL_TITLE_TOP = 2.4f;
+    static final float PILL_ROW_CENTER = 6.6f;
+    static final float PILL_TIME_TOP = 11.6f;
+    static final float CARD_TITLE_TOP = 7.5f;
+    static final float CARD_ARTIST_TOP = 19.5f;
+    static final float CARD_TIME_TOP = 35.5f;
+    private static final float CARD_WAVE_CENTER = 17.0f;
+    private static final float MIN_SLOT = 4.0f;
+
+    private IslandContent() {}
+
+    static void draw(IslandFlight flight) {
+        face(flight);
+        mainLine(flight);
+        artist(flight);
+        IslandTimeline.draw(flight);
+        bars(flight);
+    }
+
+    private static void face(IslandFlight flight) {
+        IslandMeasure measure = flight.measure();
+        float size = flight.mix(measure.face(), measure.art());
+        if (size <= 0.0f) return;
+
+        IslandFace.draw(flight.scene().graphics(), flight.x(PAD + measure.face() / 2.0f, PAD + measure.art() / 2.0f),
+                flight.y(PILL_HEIGHT / 2.0f, CARD_HEIGHT / 2.0f), size, 1.0f, flight.blur(),
+                IslandHud.showsArt(measure));
+    }
+
+    static float textX(IslandFlight flight) {
+        IslandMeasure measure = flight.measure();
+        return flight.x(PAD + measure.face() + GAP, PAD + measure.art() + GAP);
+    }
+
+    private static float slot(IslandFlight flight) {
+        IslandMeasure measure = flight.measure();
+        float idleReserve = measure.stats() > 0.0f ? measure.stats() + STAT_INSET : 0.0f;
+        float reserve = Anim.lerp(idleReserve, measure.waveSlot(), measure.media());
+        float pill = measure.pillWidth() - PAD - reserve - (PAD + measure.face() + GAP);
+        float card = measure.cardWidth() - PAD - measure.cardWaveSlot() - (PAD + measure.art() + GAP);
+        return flight.mix(pill, card);
+    }
+
+    // WHY: ник и название стоят каждый в своём покое своим кеглем, и переход между ними идёт позой:
+    // WHY: уходящая строка едет и растёт к месту приходящей, приходящая выходит из места уходящей
+    private static void mainLine(IslandFlight flight) {
+        IslandMeasure measure = flight.measure();
+        float slot = slot(flight);
+        if (slot <= MIN_SLOT) return;
+
+        float media = measure.media();
+        float nickTop = Ink.centerY(0.0f, PILL_HEIGHT, NICK_SCALE);
+        float pillTitle = Anim.lerp(PILL_TITLE_TOP, Ink.centerY(0.0f, PILL_HEIGHT, TITLE_PILL_SCALE), measure.blind());
+        float pillTop = Anim.lerp(nickTop, pillTitle, media);
+        if (IslandSettings.on(IslandFlag.NICK) && media < 0.98f) nick(flight, slot, pillTop, media);
+        if (!IslandSettings.on(IslandFlag.TITLE) || media <= 0.02f) return;
+
+        float pillScale = TITLE_PILL_SCALE * Anim.lerp(NICK_SCALE / TITLE_PILL_SCALE, 1.0f, media);
+        float scale = flight.mix(pillScale, TITLE_CARD_SCALE);
+        float top = flight.y(pillTop, CARD_TITLE_TOP);
+        float x = textX(flight);
+        flight.scene().titles().swapped(flight.scene().titles().title, true, media, (Line line, float shown,
+                float change) -> Ink.line(flight.scene().graphics(), flight.scene().font(), line, x, top, slot, scale,
+                ink(shown), Math.max(flight.blur(), change)));
+    }
+
+    private static void nick(IslandFlight flight, float slot, float top, float media) {
+        float scale = NICK_SCALE * Anim.lerp(1.0f, TITLE_PILL_SCALE / NICK_SCALE, media);
+        GuiGraphics graphics = flight.scene().graphics();
+        Ink.label(graphics, flight.scene().font(), IslandModel.nick(), Weight.SEMIBOLD, textX(flight),
+                flight.pillY() + top, scale, ink((1.0f - media) * (1.0f - flight.share())), flight.blur());
+    }
+
+    // WHY: исполнителя нет в таблетке, и он выходит из строки таймера: появляется под размытием и
+    // WHY: доезжает до своего места под названием вместе с остальными частями
+    private static void artist(IslandFlight flight) {
+        if (!IslandSettings.on(IslandFlag.ARTIST) || flight.share() <= 0.02f) return;
+
+        float x = textX(flight);
+        float top = flight.y(PILL_TIME_TOP, CARD_ARTIST_TOP);
+        float slot = slot(flight);
+        flight.scene().titles().swapped(flight.scene().titles().artist, false, flight.share(), (Line line,
+                float shown, float change) -> Ink.line(flight.scene().graphics(), flight.scene().font(), line, x, top,
+                slot, ARTIST_SCALE, ink(shown), Math.max(flight.blur(), change)));
+    }
+
+    private static void bars(IslandFlight flight) {
+        IslandMeasure measure = flight.measure();
+        if (measure.waveSlot() <= 0.0f) return;
+
+        float pillCenter = Anim.lerp(PILL_ROW_CENTER, PILL_HEIGHT / 2.0f, measure.blind());
+        IslandGlyph.draw(flight.scene().graphics(),
+                flight.x(measure.pillWidth() - PAD - IslandGlyph.PILL_WIDTH / 2.0f,
+                        measure.cardWidth() - PAD - IslandGlyph.CARD_WIDTH / 2.0f),
+                flight.y(pillCenter, CARD_WAVE_CENTER), flight.mix(IslandGlyph.PILL_WIDTH, IslandGlyph.CARD_WIDTH),
+                flight.mix(IslandGlyph.PILL_HEIGHT, IslandGlyph.CARD_HEIGHT), measure.media(), flight.blur());
+    }
+
+    static int ink(float alpha) {
+        return Colors.alpha(Palette.INK, alpha);
+    }
+}

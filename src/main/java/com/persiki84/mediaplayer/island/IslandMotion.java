@@ -5,9 +5,8 @@ import com.persiki84.mediaplayer.anim.Spring;
 
 // WHY: числа сняты покадрово с записи острова iPhone (60 fps, 3x): раскрытие это пружина
 // WHY: response 0.51 c и damping 0.815 с перелётом 1.1-1.4 %, перед ним сжатие за 0.2 c до 0.815
-// WHY: ширины и 0.94 высоты таблетки; сворачивание сразу пружиной 0.47 / 0.86. Содержимое каждого
-// WHY: состояния стоит в своей раскладке, масштабируется с формой и проходит через размытие по своим
-// WHY: окнам времени. Размер формы не клампится: отдача пружины и есть характер движения
+// WHY: ширины и 0.94 высоты таблетки; сворачивание сразу пружиной 0.47 / 0.86. Размер формы не
+// WHY: клампится: отдача пружины и есть характер движения
 public final class IslandMotion {
     private static final float SQUEEZE_SECONDS = 0.2f;
     private static final float SQUEEZE_WIDTH = 0.815f;
@@ -19,18 +18,13 @@ public final class IslandMotion {
     private static final float OPEN_DAMPING = 0.815f;
     private static final float CLOSE_RESPONSE = 0.47f;
     private static final float CLOSE_DAMPING = 0.86f;
-    // WHY: владелец 03.10.2026: «всё окно размывалось при открытии и закрытии», элементы не убираются.
-    // WHY: Остров размывается целиком одной кривой на весь ход, а обе раскладки перетекают внахлёст
-    // WHY: под её пиком, поэтому пустого стекла между таблеткой и карточкой нет ни в один кадр
+    // WHY: владелец 03.10.2026: окно не размывается, размывается только содержимое внутри, пока
+    // WHY: общие части летят из таблетки в карточку. Кривая набирается за 0.12 c и снимается за
+    // WHY: последние 0.2 c хода, к концу хода содержимое снова резкое
     private static final float BLUR_RISE = 0.12f;
     private static final float BLUR_FALL = 0.2f;
     private static final float OPEN_TAIL = 0.32f;
     private static final float CLOSE_SPAN = 0.36f;
-    private static final float OPEN_SWAP_MIN = 0.02f;
-    private static final float OPEN_SWAP_EARLY = 0.08f;
-    private static final float OPEN_SWAP_LATE = 0.12f;
-    private static final float CLOSE_SWAP_FROM = 0.04f;
-    private static final float CLOSE_SWAP_TO = 0.22f;
 
     private static final float SWELL_RESPONSE = 0.35f;
     private static final float SWELL_DAMPING = 0.6f;
@@ -41,25 +35,18 @@ public final class IslandMotion {
     // WHY: радиус угла у iPhone растёт с высотой: 20 pt у компакта высотой 40 pt и 47 pt у карточки
     // WHY: высотой 203 pt, то есть на 0.166 от прироста высоты, до полной капсулы у таблетки
     private static final float RADIUS_GROWTH = 0.166f;
-    private static final float SCALE_LOW = 0.5f;
-    private static final float SCALE_HIGH = 1.15f;
-
-    private enum Phase { REST, OPEN, CLOSE }
 
     private final Spring width = new Spring(CLOSE_RESPONSE, CLOSE_DAMPING);
     private final Spring height = new Spring(CLOSE_RESPONSE, CLOSE_DAMPING);
     private final Spring swell = new Spring(SWELL_RESPONSE, SWELL_DAMPING, 0.0f);
 
-    private Phase phase = Phase.REST;
+    private boolean moving;
     private boolean open;
     private float clock;
     private float lead;
+    private float span;
     private float swellClock = SWELL_HOLD;
-    private float pillFrom = 1.0f;
-    private float cardFrom;
     private float blurFrom;
-    private float pillAlpha = 1.0f;
-    private float cardAlpha;
     private float blur;
 
     public void advance(boolean wanted, IslandMeasure measure, float delta) {
@@ -68,25 +55,22 @@ public final class IslandMotion {
         swellClock += delta;
         drive(measure, delta);
         swell.to(swellClock < SWELL_HOLD ? 1.0f : 0.0f, delta);
-        if (phase == Phase.OPEN) opening();
-        if (phase == Phase.CLOSE) closing();
-        if (phase == Phase.REST) rest();
+        blur = moving ? travelBlur() : 0.0f;
+        if (clock >= span) moving = false;
     }
 
     private void depart(boolean wanted, IslandMeasure measure) {
-        pillFrom = pillAlpha;
-        cardFrom = cardAlpha;
         blurFrom = blur;
         open = wanted;
-        phase = wanted ? Phase.OPEN : Phase.CLOSE;
+        moving = true;
         boolean compact = width.get() <= measure.pillWidth() * SQUEEZE_SKIP;
         lead = wanted && compact ? SQUEEZE_SECONDS : 0.0f;
+        span = wanted ? lead + OPEN_TAIL : CLOSE_SPAN;
         clock = 0.0f;
     }
 
     private void drive(IslandMeasure measure, float delta) {
-        boolean squeezing = phase == Phase.OPEN && clock < lead;
-        if (squeezing) {
+        if (open && clock < lead) {
             tune(SQUEEZE_RESPONSE, SQUEEZE_DAMPING);
             width.to(measure.pillWidth() * SQUEEZE_WIDTH, delta);
             height.to(IslandMeasure.PILL_HEIGHT * SQUEEZE_HEIGHT, delta);
@@ -106,38 +90,17 @@ public final class IslandMotion {
         height.tune(response, damping);
     }
 
-    private void opening() {
-        float swap = Anim.smoothstep(Math.max(OPEN_SWAP_MIN, lead - OPEN_SWAP_EARLY), lead + OPEN_SWAP_LATE, clock);
-        pillAlpha = pillFrom * (1.0f - swap);
-        cardAlpha = cardFrom + (1.0f - cardFrom) * swap;
-        settle(lead + OPEN_TAIL);
-    }
-
-    private void closing() {
-        float swap = Anim.smoothstep(CLOSE_SWAP_FROM, CLOSE_SWAP_TO, clock);
-        cardAlpha = cardFrom * (1.0f - swap);
-        pillAlpha = pillFrom + (1.0f - pillFrom) * swap;
-        settle(CLOSE_SPAN);
-    }
-
-    private void settle(float span) {
+    private float travelBlur() {
         float fall = 1.0f - Anim.smoothstep(span - BLUR_FALL, span, clock);
-        blur = Math.max(blurFrom * fall, Anim.smoothstep(0.0f, BLUR_RISE, clock) * fall);
-        if (clock >= span) phase = Phase.REST;
-    }
-
-    private void rest() {
-        pillAlpha = open ? 0.0f : 1.0f;
-        cardAlpha = open ? 1.0f : 0.0f;
-        blur = 0.0f;
+        return Math.max(blurFrom, Anim.smoothstep(0.0f, BLUR_RISE, clock)) * fall;
     }
 
     public void snap(boolean wanted, IslandMeasure measure) {
         open = wanted;
-        phase = Phase.REST;
+        moving = false;
+        blur = 0.0f;
         width.snap(wanted ? measure.cardWidth() : measure.pillWidth());
         height.snap(wanted ? IslandMeasure.CARD_HEIGHT : IslandMeasure.PILL_HEIGHT);
-        rest();
     }
 
     public void pulse() {
@@ -148,6 +111,17 @@ public final class IslandMotion {
         return open;
     }
 
+    public boolean resting() {
+        return !moving && swellClock >= SWELL_HOLD && swell.resting(0.0f);
+    }
+
+    // WHY: доля полёта общих частей берётся из высоты формы без толчка: части едут вместе со стеклом,
+    // WHY: а перелёт пружины за карточку не уносит их за её раскладку
+    public float flight() {
+        float travel = IslandMeasure.CARD_HEIGHT - IslandMeasure.PILL_HEIGHT;
+        return Anim.clamp01((height.get() - IslandMeasure.PILL_HEIGHT) / travel);
+    }
+
     public float width() {
         return Math.max(1.0f, width.get() * (1.0f + SWELL_WIDTH * swell.get()));
     }
@@ -156,28 +130,8 @@ public final class IslandMotion {
         return Math.max(1.0f, height.get() * (1.0f + SWELL_HEIGHT * swell.get()));
     }
 
-    public float pillAlpha() {
-        return Anim.clamp01(pillAlpha);
-    }
-
     public float blur() {
         return Anim.clamp01(blur);
-    }
-
-    public float cardAlpha() {
-        return Anim.clamp01(cardAlpha);
-    }
-
-    public float pillScale(IslandMeasure measure) {
-        return fit(width() / measure.pillWidth(), height() / IslandMeasure.PILL_HEIGHT);
-    }
-
-    public float cardScale(IslandMeasure measure) {
-        return fit(width() / measure.cardWidth(), height() / IslandMeasure.CARD_HEIGHT);
-    }
-
-    private static float fit(float across, float down) {
-        return Anim.clamp((float) Math.sqrt(Math.max(0.0f, across * down)), SCALE_LOW, SCALE_HIGH);
     }
 
     public float radius() {

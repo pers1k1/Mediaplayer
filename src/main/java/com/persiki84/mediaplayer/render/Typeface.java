@@ -9,21 +9,24 @@ import net.minecraft.network.chat.FontDescription;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-// WHY: шрифт тот же, что в BattleCraft (Inter, size 8.5), и так же хранится несколькими копиями с
-// WHY: разной передискретизацией: строка острова рисуется в масштабе от трети до десятка физических
-// WHY: пикселей на единицу, и одна копия либо мылит мелкий текст, либо рвёт крупный. Берётся
-// WHY: ближайшая копия не меньше настоящей плотности пикселей строки
+// WHY: шрифт тот же, что в BattleCraft (Inter, size 8.5), и хранится копиями с передискретизацией
+// WHY: от 1 до 6 с шагом 0.25. Глиф чёткий, только когда его растр ложится на экран один к одному:
+// WHY: копия с передискретизацией больше плотности строки ужимается и мылится, меньше - растягивается.
+// WHY: Берётся ближайшая копия к настоящей плотности физических пикселей строки
 public final class Typeface {
-    private static final int[] OVERSAMPLES = {1, 2, 3, 4, 6};
+    private static final float FINEST = 1.0f;
+    private static final float STEP = 0.25f;
+    private static final int STEPS = 21;
     private static final int CACHE_LIMIT = 512;
     private static final Map<FontDescription, Map<Component, Component>> styled = new IdentityHashMap<>();
-    private static final FontDescription[][] faces = new FontDescription[Weight.values().length][OVERSAMPLES.length];
+    private static final FontDescription[][] faces = new FontDescription[Weight.values().length][STEPS];
 
     static {
         for (Weight weight : Weight.values()) {
-            for (int index = 0; index < OVERSAMPLES.length; index++) {
+            for (int index = 0; index < STEPS; index++) {
+                int hundredths = Math.round((FINEST + STEP * index) * 100.0f);
                 faces[weight.ordinal()][index] = new FontDescription.Resource(
-                        Mediaplayer.id(weight.face() + OVERSAMPLES[index]));
+                        Mediaplayer.id(weight.face() + "_" + hundredths));
             }
         }
     }
@@ -48,10 +51,7 @@ public final class Typeface {
     }
 
     private static FontDescription face(Weight weight, float pixelsPerUnit) {
-        FontDescription[] row = faces[weight.ordinal()];
-        for (int index = 0; index < OVERSAMPLES.length; index++) {
-            if (OVERSAMPLES[index] >= pixelsPerUnit) return row[index];
-        }
-        return row[OVERSAMPLES.length - 1];
+        int index = Math.round((pixelsPerUnit - FINEST) / STEP);
+        return faces[weight.ordinal()][Math.max(0, Math.min(STEPS - 1, index))];
     }
 }

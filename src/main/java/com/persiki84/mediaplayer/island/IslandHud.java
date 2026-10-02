@@ -5,6 +5,7 @@ import com.persiki84.mediaplayer.anim.FrameClock;
 import com.persiki84.mediaplayer.config.IslandFlag;
 import com.persiki84.mediaplayer.config.IslandPlacement;
 import com.persiki84.mediaplayer.config.IslandSettings;
+import com.persiki84.mediaplayer.render.Ink;
 import com.persiki84.mediaplayer.render.Paint;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -19,8 +20,6 @@ public final class IslandHud {
     private static final IslandTitles titles = new IslandTitles();
     private static final IslandMeasure measure = new IslandMeasure();
     private static final IslandMotion motion = new IslandMotion();
-
-    private static final float BLUR_REACH = 3.0f;
 
     private static long preparedFrame = -1L;
     private static boolean primed;
@@ -86,31 +85,18 @@ public final class IslandHud {
         GuiGraphics graphics = scene.graphics();
         float width = motion.width();
         float height = motion.height();
-        float blur = motion.blur();
-        Paint.glass(graphics, x, y, width, height, motion.radius(), 1.0f, blur);
-        float reach = blur * BLUR_REACH;
-        clip(graphics, x - reach, y - reach, width + reach * 2.0f, height + reach * 2.0f, () -> {
-            layer(graphics, x + width / 2.0f, y + height / 2.0f, motion.pillScale(measure), () ->
-                    IslandPill.draw(scene, x + (width - measure.pillWidth()) / 2.0f, y + (height - PILL_HEIGHT) / 2.0f,
-                            motion.pillAlpha(), blur));
-            layer(graphics, x + width / 2.0f, y + height / 2.0f, motion.cardScale(measure), () ->
-                    IslandCard.draw(scene, x + (width - measure.cardWidth()) / 2.0f, y + (height - CARD_HEIGHT) / 2.0f,
-                            motion.cardAlpha(), blur));
-        });
-        IslandCounter.draw(scene, x, y, width, height, 1.0f);
-    }
-
-    // WHY: содержимое каждого состояния стоит в своей итоговой раскладке и масштабируется вместе с
-    // WHY: формой вокруг её центра, как у острова iPhone: оно растёт вместе со стеклом, а не выезжает
-    private static void layer(GuiGraphics graphics, float pivotX, float pivotY, float scale, Runnable body) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(pivotX, pivotY);
-        graphics.pose().scale(scale, scale);
-        graphics.pose().translate(-pivotX, -pivotY);
+        Paint.glass(graphics, x, y, width, height, motion.radius(), 1.0f);
+        float centerX = x + width / 2.0f;
+        float centerY = y + height / 2.0f;
+        IslandFlight flight = new IslandFlight(scene, centerX - measure.pillWidth() / 2.0f,
+                centerY - PILL_HEIGHT / 2.0f, centerX - measure.cardWidth() / 2.0f, centerY - CARD_HEIGHT / 2.0f,
+                motion.flight(), motion.blur());
+        Ink.snapping(motion.resting() && !titles.swapping());
         try {
-            body.run();
+            clip(graphics, x, y, width, height, () -> IslandContent.draw(flight));
+            IslandCounter.draw(scene, x, y, width, height, 1.0f);
         } finally {
-            graphics.pose().popMatrix();
+            Ink.snapping(true);
         }
     }
 

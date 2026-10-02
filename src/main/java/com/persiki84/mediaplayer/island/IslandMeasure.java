@@ -8,11 +8,11 @@ import com.persiki84.mediaplayer.render.Weight;
 import net.minecraft.client.gui.Font;
 
 public final class IslandMeasure {
-    public static final float PILL_HEIGHT = 17.0f;
-    public static final float CARD_HEIGHT = 42.0f;
+    public static final float PILL_HEIGHT = 19.0f;
+    public static final float CARD_HEIGHT = 47.0f;
     static final float PAD = 5.0f;
-    static final float FACE = 13.0f;
-    static final float ART = 26.0f;
+    static final float FACE = 15.0f;
+    static final float ART = 30.0f;
     static final float GAP = 6.0f;
     static final float WAVE_GAP = 6.0f;
     static final float STAT_INSET = 8.0f;
@@ -20,23 +20,23 @@ public final class IslandMeasure {
     static final float CAPSULE_PAD = 6.0f;
     static final float PILL_TIME_GAP = 4.0f;
 
-    static final float NICK_SCALE = 0.85f;
-    static final float TITLE_PILL_SCALE = 0.78f;
-    static final float TITLE_CARD_SCALE = 0.88f;
-    static final float ARTIST_SCALE = 0.72f;
-    static final float TIME_SCALE = 0.58f;
+    static final float NICK_SCALE = 1.0f;
+    static final float TITLE_PILL_SCALE = 0.9f;
+    static final float TITLE_CARD_SCALE = 1.0f;
+    static final float ARTIST_SCALE = 0.84f;
+    static final float TIME_SCALE = 0.7f;
 
-    private static final float PILL_BAR_MIN = 28.0f;
+    private static final float PILL_BAR_MIN = 32.0f;
     // WHY: цифры FPS, пинга и таймера меняют ширину строки на пару единиц (99 -> 100, 9:59 -> 10:00),
     // WHY: и остров прыгал бы шире и уже вместе с ними: ширина держит свой максимум и отпускает его,
     // WHY: только когда строка стала короче больше чем на запас
     private static final float HOLD_SLACK = 10.0f;
     // WHY: остров тянется за названием, но верхний предел держит его компактным: всё, что длиннее
     // WHY: слота, уезжает бегущей строкой
-    private static final float TITLE_MIN = 36.0f;
-    private static final float TITLE_MAX = 70.0f;
-    private static final float CARD_TEXT_MIN = 84.0f;
-    private static final float CARD_TEXT_MAX = 104.0f;
+    private static final float TITLE_MIN = 42.0f;
+    private static final float TITLE_MAX = 82.0f;
+    private static final float CARD_TEXT_MIN = 96.0f;
+    private static final float CARD_TEXT_MAX = 122.0f;
 
     private float media;
     private float blind;

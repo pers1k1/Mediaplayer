@@ -21,11 +21,11 @@ import static com.persiki84.mediaplayer.island.IslandMeasure.PILL_HEIGHT;
 // WHY: острова справа, с музыкой съезжает под него в свою капсулу. Вниз уходит с перелётом, вбок
 // WHY: доезжает без него, поэтому он выпадает, а потом встаёт на место
 final class IslandCounter {
-    private static final float STAT_SCALE = 0.72f;
-    private static final float UNIT_SCALE = 0.62f;
+    private static final float STAT_SCALE = 0.84f;
+    private static final float UNIT_SCALE = 0.72f;
     private static final float UNIT_GAP = 2.5f;
     private static final float PAIR_GAP = 7.0f;
-    private static final float BAND = 9.5f;
+    private static final float BAND = 10.5f;
     private static final float GOOD_PING = 0.66f;
     private static final float SLOW_PING = 0.33f;
     private static final float MAX_RADIUS = 13.0f;
@@ -71,10 +71,10 @@ final class IslandCounter {
         float cursor = x;
         if (IslandSettings.on(IslandFlag.FPS)) {
             cursor = pair(graphics, font, FPS_UNIT, IslandModel.frames(), cursor, unitY, valueY,
-                    IslandPill.ink(alpha), IslandPill.ink(alpha)) + PAIR_GAP;
+                    IslandContent.ink(alpha), IslandContent.ink(alpha)) + PAIR_GAP;
         }
         if (IslandSettings.on(IslandFlag.PING)) {
-            pair(graphics, font, PING_UNIT, IslandModel.latency(), cursor, unitY, valueY, IslandPill.ink(alpha),
+            pair(graphics, font, PING_UNIT, IslandModel.latency(), cursor, unitY, valueY, IslandContent.ink(alpha),
                     Colors.alpha(pingTone(), alpha));
         }
     }

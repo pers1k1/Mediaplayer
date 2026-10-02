@@ -2,6 +2,7 @@ package com.persiki84.mediaplayer.render;
 
 import com.persiki84.mediaplayer.anim.Anim;
 import com.persiki84.mediaplayer.color.Colors;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -10,10 +11,12 @@ import org.joml.Matrix3x2f;
 public final class Ink {
     public static final float GLYPH_HEIGHT = 8.0f;
 
-    private static final int BLUR_TAPS = 6;
-    private static final float BLUR_REACH = 2.2f;
-    private static final float CORE_LOSS = 0.8f;
-    private static final float TAP_SHARE = 0.22f;
+    private static final float BLUR_REACH = 2.4f;
+    private static final float SPREAD = 0.82f;
+    private static final int INNER_TAPS = 6;
+    private static final int OUTER_TAPS = 10;
+    private static final float INNER_SHARE = 0.55f;
+    private static final float INNER_REACH = 0.45f;
     private static final float SHARP = 0.02f;
     private static final float LINE_UNITS = 9.0f;
     private static final float FADE_LINES = 1.8f;
@@ -21,6 +24,8 @@ public final class Ink {
     private static final float MARGIN_LINES = 0.4f;
     private static final float MARGIN_BOX_SHARE = 0.08f;
     private static final float FADE_GROWTH = 3.0f;
+
+    private static boolean snapping = true;
 
     private Ink() {}
 
@@ -36,29 +41,56 @@ public final class Ink {
                              float scale, int color, float blur) {
         if ((color >>> 24) < 3) return;
         if (blur <= SHARP) {
-            stamp(graphics, font, text, weight, x, y, scale, color);
+            stamp(graphics, font, text, weight, x, y, scale, color, snapping);
             return;
         }
         float reach = blur * BLUR_REACH * scale;
-        stamp(graphics, font, text, weight, x, y, scale, Colors.alpha(color, 1.0f - CORE_LOSS * blur));
-        int tap = Colors.alpha(color, TAP_SHARE * blur);
-        for (int index = 0; index < BLUR_TAPS; index++) {
-            double angle = Math.PI * 2.0 * index / BLUR_TAPS;
+        float spread = SPREAD * blur;
+        stamp(graphics, font, text, weight, x, y, scale, Colors.alpha(color, 1.0f - spread), false);
+        ring(graphics, font, text, weight, x, y, scale, Colors.alpha(color, spread * INNER_SHARE / INNER_TAPS),
+                reach * INNER_REACH, INNER_TAPS);
+        ring(graphics, font, text, weight, x, y, scale,
+                Colors.alpha(color, spread * (1.0f - INNER_SHARE) / OUTER_TAPS), reach, OUTER_TAPS);
+    }
+
+    // WHY: размытие строки собирается из ядра и двух колец копий, веса которых в сумме дают ровно
+    // WHY: исходную непрозрачность: свечения и осветления нет, а края букв расходятся мягкой дымкой
+    private static void ring(GuiGraphics graphics, Font font, Component text, Weight weight, float x, float y,
+                             float scale, int color, float reach, int taps) {
+        if ((color >>> 24) < 2) return;
+
+        for (int index = 0; index < taps; index++) {
+            double angle = Math.PI * 2.0 * (index + 0.5) / taps;
             stamp(graphics, font, text, weight, x + (float) Math.cos(angle) * reach,
-                    y + (float) Math.sin(angle) * reach, scale, tap);
+                    y + (float) Math.sin(angle) * reach, scale, color, false);
         }
     }
 
     private static void stamp(GuiGraphics graphics, Font font, Component text, Weight weight, float x, float y,
-                              float scale, int color) {
-        if ((color >>> 24) < 3) return;
+                              float scale, int color, boolean onGrid) {
+        if ((color >>> 24) < 2) return;
 
         graphics.pose().pushMatrix();
         graphics.pose().translate(x, y);
+        if (onGrid) snap(graphics);
         graphics.pose().scale(scale, scale);
         float pixels = QuadArea.pixels(new Matrix3x2f(graphics.pose()));
         graphics.drawString(font, Typeface.styled(text, weight, pixels), 0, 0, color, false);
         graphics.pose().popMatrix();
+    }
+
+    // WHY: начало строки встаёт на целый физический пиксель, иначе растр глифа делится между двумя
+    // WHY: пикселями и буквы мылятся; в движении сетку не держим, чтобы строка не шла ступенями
+    private static void snap(GuiGraphics graphics) {
+        Matrix3x2f pose = new Matrix3x2f(graphics.pose());
+        float gui = Minecraft.getInstance().getWindow().getGuiScale();
+        float shiftX = (Math.round(pose.m20() * gui) - pose.m20() * gui) / gui;
+        float shiftY = (Math.round(pose.m21() * gui) - pose.m21() * gui) / gui;
+        graphics.pose().translate(shiftX / Math.max(1.0e-3f, pose.m00()), shiftY / Math.max(1.0e-3f, pose.m11()));
+    }
+
+    public static void snapping(boolean value) {
+        snapping = value;
     }
 
     public static void line(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
@@ -92,7 +124,7 @@ public final class Ink {
             float shown = Math.min(Anim.clamp01((center - (x - margin)) / leftWidth),
                     Anim.clamp01((x + slot + margin - center) / rightWidth));
             if (shown <= 0.01f) continue;
-            stamp(graphics, font, glyphs[index], line.weight(), left, y, scale, Colors.alpha(color, shown));
+            stamp(graphics, font, glyphs[index], line.weight(), left, y, scale, Colors.alpha(color, shown), snapping);
         }
     }
 

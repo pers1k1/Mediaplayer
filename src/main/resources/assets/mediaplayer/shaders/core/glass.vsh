@@ -15,12 +15,10 @@ in vec4 Color;
 in vec2 Local;
 in ivec2 HalfSize;
 in ivec2 Corner;
-in vec3 Blur;
 
 out vec2 localPoint;
 flat out vec2 halfSize;
 flat out vec2 lens;
-flat out float blur;
 out vec4 vertexColor;
 
 void main() {
@@ -28,6 +26,5 @@ void main() {
     localPoint = Local;
     halfSize = vec2(HalfSize) / 4.0;
     lens = vec2(Corner) / 4.0;
-    blur = Blur.x;
     vertexColor = Color;
 }

@@ -4,11 +4,9 @@ import com.persiki84.mediaplayer.anim.Anim;
 import com.persiki84.mediaplayer.media.MediaTrack;
 import com.persiki84.mediaplayer.render.Line;
 import com.persiki84.mediaplayer.render.Weight;
-import net.minecraft.client.gui.GuiGraphics;
 
 public final class IslandTitles {
-    private static final float SWAP_SECONDS = 0.3f;
-    private static final float SWAP_LIFT = 4.0f;
+    private static final float SWAP_SECONDS = 0.45f;
     private static final float LEAVE_UNTIL = 0.6f;
     private static final float ENTER_FROM = 0.3f;
 
@@ -25,7 +23,7 @@ public final class IslandTitles {
     private float swap = 1.0f;
 
     interface Stroke {
-        void draw(Line line, float alpha);
+        void draw(Line line, float alpha, float blur);
     }
 
     public boolean refresh(MediaTrack track, boolean visible, float delta) {
@@ -72,26 +70,21 @@ public final class IslandTitles {
         return shown.durationMs() <= 0L;
     }
 
-    void swapped(GuiGraphics graphics, Line now, boolean titleRow, float alpha, Stroke stroke) {
+    // WHY: новое значение не уезжает и не подменяется, а перетекает на месте: старое размывается и
+    // WHY: гаснет, новое проявляется из размытия, и обе строки внахлёст стоят в одном месте
+    void swapped(Line now, boolean titleRow, float alpha, Stroke stroke) {
         if (swap >= 1.0f) {
-            stroke.draw(now, alpha);
+            stroke.draw(now, alpha, 0.0f);
             return;
         }
         float leave = Anim.smoothstep(0.0f, LEAVE_UNTIL, swap);
         float enter = Anim.smoothstep(ENTER_FROM, 1.0f, swap);
-        lifted(graphics, -SWAP_LIFT * leave, () -> stroke.draw(titleRow ? leavingTitle : leavingArtist,
-                alpha * (1.0f - leave)));
-        lifted(graphics, SWAP_LIFT * (1.0f - enter), () -> stroke.draw(now, alpha * enter));
+        stroke.draw(titleRow ? leavingTitle : leavingArtist, alpha * (1.0f - leave), leave);
+        stroke.draw(now, alpha * enter, 1.0f - enter);
     }
 
-    private static void lifted(GuiGraphics graphics, float lift, Runnable body) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(0.0f, lift);
-        try {
-            body.run();
-        } finally {
-            graphics.pose().popMatrix();
-        }
+    public boolean swapping() {
+        return swap < 1.0f;
     }
 
     private static String clock(long seconds) {

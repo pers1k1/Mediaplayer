@@ -11,10 +11,10 @@ import com.persiki84.mediaplayer.render.Paint;
 import net.minecraft.client.gui.GuiGraphics;
 
 public final class IslandGlyph {
-    public static final float PILL_WIDTH = 11.0f;
-    public static final float PILL_HEIGHT = 9.5f;
-    public static final float CARD_WIDTH = 14.0f;
-    public static final float CARD_HEIGHT = 15.4f;
+    public static final float PILL_WIDTH = 12.0f;
+    public static final float PILL_HEIGHT = 10.5f;
+    public static final float CARD_WIDTH = 16.0f;
+    public static final float CARD_HEIGHT = 17.5f;
 
     private static final int BARS = MediaWatch.BANDS;
     private static final int STOPS = 4;
