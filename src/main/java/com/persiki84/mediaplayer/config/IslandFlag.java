@@ -13,7 +13,8 @@ public enum IslandFlag {
     ARTIST("artist"),
     TIME("time"),
     BAR("bar"),
-    VISUALIZER("visualizer");
+    VISUALIZER("visualizer"),
+    MOD_FONT("modFont");
 
     private final String key;
 

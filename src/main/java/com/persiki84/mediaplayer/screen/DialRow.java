@@ -6,6 +6,7 @@ import com.persiki84.mediaplayer.config.IslandDial;
 import com.persiki84.mediaplayer.config.IslandSettings;
 import com.persiki84.mediaplayer.render.Ink;
 import com.persiki84.mediaplayer.render.Paint;
+import com.persiki84.mediaplayer.render.Weight;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -76,7 +77,8 @@ final class DialRow {
     }
 
     void render(GuiGraphics graphics, Font font) {
-        Ink.label(graphics, font, label, x, Ink.centerY(y, height, LABEL_SCALE), LABEL_SCALE, Palette.INK_DIM, 0.0f);
+        Ink.label(graphics, font, label, Weight.REGULAR, x, Ink.centerY(y, height, LABEL_SCALE), LABEL_SCALE,
+                Palette.INK_DIM, 0.0f);
         int well = field.isFocused() ? Colors.mix(Palette.WELL_TOP, Palette.ACCENT, FOCUS_TINT) : Palette.WELL_TOP;
         Paint.shape(graphics, x + width - FIELD_WIDTH, y + 1, FIELD_WIDTH, height - 2, (height - 2) / 2.0f,
                 well, Palette.WELL_BOTTOM, 0.0f);

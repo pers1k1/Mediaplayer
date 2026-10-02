@@ -7,6 +7,7 @@ import com.persiki84.mediaplayer.config.IslandFlag;
 import com.persiki84.mediaplayer.config.IslandSettings;
 import com.persiki84.mediaplayer.render.Ink;
 import com.persiki84.mediaplayer.render.Line;
+import com.persiki84.mediaplayer.render.Weight;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -67,7 +68,8 @@ final class IslandPill {
         float titleTop = Anim.lerp(y + TITLE_TOP, Ink.centerY(y, PILL_HEIGHT, TITLE_PILL_SCALE), measure.blind());
         if (IslandSettings.on(IslandFlag.NICK) && media < 0.98f) {
             float scale = NICK_SCALE * Anim.lerp(1.0f, TITLE_PILL_SCALE / NICK_SCALE, media);
-            Ink.label(graphics, font, IslandModel.nick(), textX, Anim.lerp(nickTop, titleTop, media), scale,
+            Ink.label(graphics, font, IslandModel.nick(), Weight.SEMIBOLD, textX, Anim.lerp(nickTop, titleTop, media),
+                    scale,
                     ink(alpha * (1.0f - media)), blur);
         }
         if (!IslandSettings.on(IslandFlag.TITLE) || media <= 0.02f) return;
@@ -87,7 +89,8 @@ final class IslandPill {
         float left = x + PAD + measure.face() + GAP;
         float timed = 0.0f;
         if (IslandSettings.on(IslandFlag.TIME)) {
-            Ink.label(scene.graphics(), scene.font(), titles.pillRow.value(), left, y + TIME_TOP, TIME_SCALE,
+            Ink.label(scene.graphics(), scene.font(), titles.pillRow.value(), Weight.REGULAR, left, y + TIME_TOP,
+                    TIME_SCALE,
                     ink(fade), blur);
             timed = titles.pillRow.width(scene.font()) * TIME_SCALE + PILL_TIME_GAP;
         }

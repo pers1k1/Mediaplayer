@@ -3,6 +3,7 @@ package com.persiki84.mediaplayer.island;
 import com.persiki84.mediaplayer.anim.Anim;
 import com.persiki84.mediaplayer.media.MediaTrack;
 import com.persiki84.mediaplayer.render.Line;
+import com.persiki84.mediaplayer.render.Weight;
 import net.minecraft.client.gui.GuiGraphics;
 
 public final class IslandTitles {
@@ -11,12 +12,12 @@ public final class IslandTitles {
     private static final float LEAVE_UNTIL = 0.6f;
     private static final float ENTER_FROM = 0.3f;
 
-    final Line title = new Line();
-    final Line artist = new Line();
-    final Line timing = new Line();
-    final Line pillRow = new Line();
-    private final Line leavingTitle = new Line();
-    private final Line leavingArtist = new Line();
+    final Line title = new Line(Weight.SEMIBOLD);
+    final Line artist = new Line(Weight.REGULAR);
+    final Line timing = new Line(Weight.REGULAR);
+    final Line pillRow = new Line(Weight.REGULAR);
+    private final Line leavingTitle = new Line(Weight.SEMIBOLD);
+    private final Line leavingArtist = new Line(Weight.REGULAR);
 
     private MediaTrack shown = MediaTrack.NONE;
     private long shownPlayed = -1L;

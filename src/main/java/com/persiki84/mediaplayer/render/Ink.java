@@ -5,6 +5,7 @@ import com.persiki84.mediaplayer.color.Colors;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import org.joml.Matrix3x2f;
 
 public final class Ink {
     public static final float GLYPH_HEIGHT = 8.0f;
@@ -27,35 +28,36 @@ public final class Ink {
         return y + (height - GLYPH_HEIGHT * scale) / 2.0f;
     }
 
-    public static float width(Font font, Component text, float scale) {
-        return font.width(text) * scale;
+    public static float width(Font font, Component text, Weight weight, float scale) {
+        return font.width(Typeface.measured(text, weight)) * scale;
     }
 
-    public static void label(GuiGraphics graphics, Font font, Component text, float x, float y, float scale,
-                             int color, float blur) {
+    public static void label(GuiGraphics graphics, Font font, Component text, Weight weight, float x, float y,
+                             float scale, int color, float blur) {
         if ((color >>> 24) < 3) return;
         if (blur <= SHARP) {
-            stamp(graphics, font, text, x, y, scale, color);
+            stamp(graphics, font, text, weight, x, y, scale, color);
             return;
         }
         float reach = blur * BLUR_REACH * scale;
-        stamp(graphics, font, text, x, y, scale, Colors.alpha(color, 1.0f - CORE_LOSS * blur));
+        stamp(graphics, font, text, weight, x, y, scale, Colors.alpha(color, 1.0f - CORE_LOSS * blur));
         int tap = Colors.alpha(color, TAP_SHARE * blur);
         for (int index = 0; index < BLUR_TAPS; index++) {
             double angle = Math.PI * 2.0 * index / BLUR_TAPS;
-            stamp(graphics, font, text, x + (float) Math.cos(angle) * reach, y + (float) Math.sin(angle) * reach,
-                    scale, tap);
+            stamp(graphics, font, text, weight, x + (float) Math.cos(angle) * reach,
+                    y + (float) Math.sin(angle) * reach, scale, tap);
         }
     }
 
-    private static void stamp(GuiGraphics graphics, Font font, Component text, float x, float y, float scale,
-                              int color) {
+    private static void stamp(GuiGraphics graphics, Font font, Component text, Weight weight, float x, float y,
+                              float scale, int color) {
         if ((color >>> 24) < 3) return;
 
         graphics.pose().pushMatrix();
         graphics.pose().translate(x, y);
         graphics.pose().scale(scale, scale);
-        graphics.drawString(font, text, 0, 0, color, false);
+        float pixels = QuadArea.pixels(new Matrix3x2f(graphics.pose()));
+        graphics.drawString(font, Typeface.styled(text, weight, pixels), 0, 0, color, false);
         graphics.pose().popMatrix();
     }
 
@@ -63,7 +65,8 @@ public final class Ink {
                             int color, float blur) {
         float span = line.width(font) * scale;
         if (span <= slot || blur > SHARP) {
-            clipped(graphics, x, y, slot, scale, () -> label(graphics, font, line.value(), x, y, scale, color, blur));
+            clipped(graphics, x, y, slot, scale, () -> label(graphics, font, line.value(), line.weight(), x, y, scale,
+                    color, blur));
             return;
         }
         float shift = Marquee.shift(line.raw(), span - slot);
@@ -89,7 +92,7 @@ public final class Ink {
             float shown = Math.min(Anim.clamp01((center - (x - margin)) / leftWidth),
                     Anim.clamp01((x + slot + margin - center) / rightWidth));
             if (shown <= 0.01f) continue;
-            stamp(graphics, font, glyphs[index], left, y, scale, Colors.alpha(color, shown));
+            stamp(graphics, font, glyphs[index], line.weight(), left, y, scale, Colors.alpha(color, shown));
         }
     }
 

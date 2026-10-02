@@ -6,6 +6,7 @@ import com.persiki84.mediaplayer.color.Colors;
 import com.persiki84.mediaplayer.color.Palette;
 import com.persiki84.mediaplayer.render.Ink;
 import com.persiki84.mediaplayer.render.Paint;
+import com.persiki84.mediaplayer.render.Weight;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -47,8 +48,8 @@ final class GlassButton extends AbstractWidget {
         int face = Colors.mix(FACE, FACE_LIT, lit);
         Paint.shape(graphics, x, y, width, height, height / 2.0f, face, Colors.mix(face, Palette.BLACK, 0.2f), 0.0f);
         Font font = Minecraft.getInstance().font;
-        float labelWidth = Ink.width(font, getMessage(), LABEL_SCALE);
-        Ink.label(graphics, font, getMessage(), getX() + (getWidth() - labelWidth) / 2.0f,
+        float labelWidth = Ink.width(font, getMessage(), Weight.SEMIBOLD, LABEL_SCALE);
+        Ink.label(graphics, font, getMessage(), Weight.SEMIBOLD, getX() + (getWidth() - labelWidth) / 2.0f,
                 Ink.centerY(getY(), getHeight(), LABEL_SCALE), LABEL_SCALE, Palette.INK, 0.0f);
     }
 

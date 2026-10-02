@@ -39,6 +39,8 @@
   "mediaplayer.settings.flag.bar.hint": "How far the track has played",
   "mediaplayer.settings.flag.visualizer": "Visualizer",
   "mediaplayer.settings.flag.visualizer.hint": "Bars that dance to the sound of the player",
+  "mediaplayer.settings.flag.modFont": "Mod font",
+  "mediaplayer.settings.flag.modFont.hint": "Inter, the typeface of BattleCraft. Off: the vanilla Minecraft font",
 
   "mediaplayer.settings.dial.cardSeconds": "Card time, s",
   "mediaplayer.settings.dial.cardSeconds.hint": "How long the card stays open after a track change, from %s to %s seconds",

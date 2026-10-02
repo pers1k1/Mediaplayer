@@ -10,6 +10,7 @@ import com.persiki84.mediaplayer.config.IslandSettings;
 import com.persiki84.mediaplayer.island.IslandBounds;
 import com.persiki84.mediaplayer.render.Ink;
 import com.persiki84.mediaplayer.render.Paint;
+import com.persiki84.mediaplayer.render.Weight;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents;
 import net.minecraft.client.Minecraft;
@@ -99,10 +100,10 @@ public final class ChatDrag {
 
         outline(graphics, shown);
         if (dragging && snappedX) guide(graphics, shown);
-        float hintWidth = Ink.width(Minecraft.getInstance().font, HINT, HINT_SCALE);
+        float hintWidth = Ink.width(Minecraft.getInstance().font, HINT, Weight.REGULAR, HINT_SCALE);
         float hintX = Anim.clamp(IslandBounds.left() + (IslandBounds.width() - hintWidth) / 2.0f, 2.0f,
                 graphics.guiWidth() - hintWidth - 2.0f);
-        Ink.label(graphics, Minecraft.getInstance().font, HINT, hintX,
+        Ink.label(graphics, Minecraft.getInstance().font, HINT, Weight.REGULAR, hintX,
                 IslandBounds.top() + IslandBounds.height() + HINT_GAP, HINT_SCALE,
                 Colors.alpha(Palette.INK_DIM, shown), 0.0f);
     }

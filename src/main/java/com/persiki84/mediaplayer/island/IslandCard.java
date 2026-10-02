@@ -4,6 +4,7 @@ import com.persiki84.mediaplayer.config.IslandFlag;
 import com.persiki84.mediaplayer.config.IslandSettings;
 import com.persiki84.mediaplayer.render.Ink;
 import com.persiki84.mediaplayer.render.Line;
+import com.persiki84.mediaplayer.render.Weight;
 
 import static com.persiki84.mediaplayer.island.IslandMeasure.ART;
 import static com.persiki84.mediaplayer.island.IslandMeasure.ARTIST_SCALE;
@@ -74,7 +75,8 @@ final class IslandCard {
                     y + BAR_TOP + BAR_HEIGHT / 2.0f, BAR_HEIGHT * SEEK_HEAD, fade);
         }
         if (IslandSettings.on(IslandFlag.TIME)) {
-            Ink.label(scene.graphics(), scene.font(), scene.titles().timing.value(), barX, y + TIME_TOP, TIME_SCALE,
+            Ink.label(scene.graphics(), scene.font(), scene.titles().timing.value(), Weight.REGULAR, barX,
+                    y + TIME_TOP, TIME_SCALE,
                     IslandPill.ink(fade), blur);
         }
     }

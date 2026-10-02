@@ -7,6 +7,7 @@ import com.persiki84.mediaplayer.config.IslandFlag;
 import com.persiki84.mediaplayer.config.IslandSettings;
 import com.persiki84.mediaplayer.render.Ink;
 import com.persiki84.mediaplayer.render.Paint;
+import com.persiki84.mediaplayer.render.Weight;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -44,7 +45,8 @@ final class IslandCounter {
     }
 
     private static float pairWidth(Font font, Component unit, Component value) {
-        return Ink.width(font, unit, UNIT_SCALE) + UNIT_GAP + Ink.width(font, value, STAT_SCALE);
+        return Ink.width(font, unit, Weight.REGULAR, UNIT_SCALE) + UNIT_GAP
+                + Ink.width(font, value, Weight.SEMIBOLD, STAT_SCALE);
     }
 
     static void draw(IslandScene scene, float x, float y, float width, float height, float alpha) {
@@ -79,10 +81,10 @@ final class IslandCounter {
 
     private static float pair(GuiGraphics graphics, Font font, Component unit, Component value, float x,
                               float unitY, float valueY, int unitInk, int valueInk) {
-        Ink.label(graphics, font, unit, x, unitY, UNIT_SCALE, unitInk, 0.0f);
-        float valueX = x + Ink.width(font, unit, UNIT_SCALE) + UNIT_GAP;
-        Ink.label(graphics, font, value, valueX, valueY, STAT_SCALE, valueInk, 0.0f);
-        return valueX + Ink.width(font, value, STAT_SCALE);
+        Ink.label(graphics, font, unit, Weight.REGULAR, x, unitY, UNIT_SCALE, unitInk, 0.0f);
+        float valueX = x + Ink.width(font, unit, Weight.REGULAR, UNIT_SCALE) + UNIT_GAP;
+        Ink.label(graphics, font, value, Weight.SEMIBOLD, valueX, valueY, STAT_SCALE, valueInk, 0.0f);
+        return valueX + Ink.width(font, value, Weight.SEMIBOLD, STAT_SCALE);
     }
 
     private static int pingTone() {

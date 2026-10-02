@@ -9,6 +9,7 @@ import com.persiki84.mediaplayer.config.IslandFlag;
 import com.persiki84.mediaplayer.config.IslandSettings;
 import com.persiki84.mediaplayer.render.Ink;
 import com.persiki84.mediaplayer.render.Paint;
+import com.persiki84.mediaplayer.render.Weight;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -47,7 +48,7 @@ final class GlassToggle extends AbstractWidget {
         float delta = FrameClock.delta();
         float on = knob.to(IslandSettings.on(flag) ? 1.0f : 0.0f, delta);
         float lit = hover.to(isHoveredOrFocused() ? 1.0f : 0.0f, delta);
-        Ink.label(graphics, Minecraft.getInstance().font, getMessage(), getX(),
+        Ink.label(graphics, Minecraft.getInstance().font, getMessage(), Weight.REGULAR, getX(),
                 Ink.centerY(getY(), getHeight(), LABEL_SCALE), LABEL_SCALE,
                 Colors.mix(Palette.INK_DIM, Palette.INK, Anim.clamp01(lit)), 0.0f);
         track(graphics, on, lit);

@@ -2,9 +2,9 @@ package com.persiki84.mediaplayer.island;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.persiki84.mediaplayer.Mediaplayer;
-import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Util;
 
 import java.io.InputStream;
 import java.nio.file.Files;

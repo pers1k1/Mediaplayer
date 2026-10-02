@@ -39,6 +39,8 @@
   "mediaplayer.settings.flag.bar.hint": "Сколько трека уже проиграно",
   "mediaplayer.settings.flag.visualizer": "Визуализатор",
   "mediaplayer.settings.flag.visualizer.hint": "Полоски, которые пляшут под звук плеера",
+  "mediaplayer.settings.flag.modFont": "Шрифт мода",
+  "mediaplayer.settings.flag.modFont.hint": "Inter, шрифт BattleCraft. Выключено: ванильный шрифт Minecraft",
 
   "mediaplayer.settings.dial.cardSeconds": "Карточка, сек",
   "mediaplayer.settings.dial.cardSeconds.hint": "Сколько карточка держится после смены трека, от %s до %s секунд",
