@@ -103,7 +103,7 @@ final class IslandContent {
         float top = flight.y(PILL_TITLE_TOP, CARD_ARTIST_TOP);
         float slot = slot(flight);
         flight.scene().titles().artist.draw(flight.scene().graphics(), flight.scene().font(), x, top, slot,
-                Ink.fit(ARTIST_SCALE), ink(flight.share() * flight.share()), flight.blur());
+                Ink.fit(ARTIST_SCALE), quiet(flight.share() * flight.share()), flight.blur());
     }
 
     private static void bars(IslandFlight flight) {
@@ -120,5 +120,11 @@ final class IslandContent {
 
     static int ink(float alpha) {
         return Colors.alpha(Palette.INK, alpha);
+    }
+
+    // WHY: вторичные строки (исполнитель, таймер) полужирные, но приглушённые, как подписи в iOS:
+    // WHY: обычное начертание Inter на восьми-десяти пикселях со сглаживанием выходило истощённым
+    static int quiet(float alpha) {
+        return Colors.alpha(Palette.INK_DIM, alpha);
     }
 }

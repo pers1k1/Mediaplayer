@@ -45,7 +45,7 @@ final class IslandCounter {
     }
 
     private static float pairWidth(Font font, Component unit, Component value) {
-        return Ink.width(font, unit, Weight.REGULAR, Ink.fit(UNIT_SCALE)) + UNIT_GAP
+        return Ink.width(font, unit, Weight.SEMIBOLD, Ink.fit(UNIT_SCALE)) + UNIT_GAP
                 + Ink.width(font, value, Weight.SEMIBOLD, Ink.fit(STAT_SCALE));
     }
 
@@ -81,8 +81,8 @@ final class IslandCounter {
 
     private static float pair(GuiGraphics graphics, Font font, Component unit, Component value, float x,
                               float unitY, float valueY, int unitInk, int valueInk) {
-        Ink.label(graphics, font, unit, Weight.REGULAR, x, unitY, Ink.fit(UNIT_SCALE), unitInk, 0.0f);
-        float valueX = x + Ink.width(font, unit, Weight.REGULAR, Ink.fit(UNIT_SCALE)) + UNIT_GAP;
+        Ink.label(graphics, font, unit, Weight.SEMIBOLD, x, unitY, Ink.fit(UNIT_SCALE), unitInk, 0.0f);
+        float valueX = x + Ink.width(font, unit, Weight.SEMIBOLD, Ink.fit(UNIT_SCALE)) + UNIT_GAP;
         Ink.label(graphics, font, value, Weight.SEMIBOLD, valueX, valueY, Ink.fit(STAT_SCALE), valueInk, 0.0f);
         return valueX + Ink.width(font, value, Weight.SEMIBOLD, Ink.fit(STAT_SCALE));
     }

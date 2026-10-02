@@ -1,5 +1,7 @@
 package com.persiki84.mediaplayer.island;
 
+import com.persiki84.mediaplayer.anim.FrameClock;
+import com.persiki84.mediaplayer.anim.Smooth;
 import com.persiki84.mediaplayer.color.Colors;
 import com.persiki84.mediaplayer.color.Palette;
 import com.persiki84.mediaplayer.config.IslandFlag;
@@ -26,6 +28,11 @@ final class IslandTimeline {
     private static final float SEEK_HEAD_CARD = 1.15f;
     private static final float TRACK_SHADE = 0.16f;
     private static final float MIN_SPAN = 4.0f;
+    private static final float BAR_SHIFT_SPEED = 12.0f;
+
+    // WHY: полоса таблетки стоит за удержанной наибольшей шириной таймера и доезжает к ней плавно:
+    // WHY: от ширины текущей строки она прыгала на каждой смене цифры вместе с общим временем
+    private static final Smooth barShift = new Smooth(0.0f, BAR_SHIFT_SPEED);
 
     private IslandTimeline() {}
 
@@ -52,11 +59,11 @@ final class IslandTimeline {
         float share = flight.share();
         float scale = Ink.fit(TIME_SCALE);
         float slot = flight.measure().cardWidth();
-        int pillInk = IslandContent.ink(fade * (1.0f - share));
+        int pillInk = IslandContent.quiet(fade * (1.0f - share));
         titles.pillRow.draw(graphics, flight.scene().font(), x, y, slot, scale, pillInk, flight.blur());
-        titles.timing.draw(graphics, flight.scene().font(), x, y, slot, scale, IslandContent.ink(fade * share),
+        titles.timing.draw(graphics, flight.scene().font(), x, y, slot, scale, IslandContent.quiet(fade * share),
                 flight.blur());
-        return titles.pillRow.line().width(flight.scene().font(), scale) + PILL_TIME_GAP;
+        return barShift.to(flight.measure().timingPeak() + PILL_TIME_GAP, FrameClock.delta());
     }
 
     private static void bar(IslandFlight flight, float left, float span, float fade) {

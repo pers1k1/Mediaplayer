@@ -97,6 +97,10 @@ public final class IslandMeasure {
         return face > 0.0f ? ART : 0.0f;
     }
 
+    public float timingPeak() {
+        return timingPeak;
+    }
+
     public float stats() {
         return stats;
     }

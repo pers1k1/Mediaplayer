@@ -6,9 +6,9 @@ import com.persiki84.mediaplayer.render.Weight;
 
 public final class IslandTitles {
     final MorphText title = new MorphText(Weight.SEMIBOLD);
-    final MorphText artist = new MorphText(Weight.REGULAR);
-    final MorphText timing = new MorphText(Weight.REGULAR);
-    final MorphText pillRow = new MorphText(Weight.REGULAR);
+    final MorphText artist = new MorphText(Weight.SEMIBOLD);
+    final MorphText timing = new MorphText(Weight.SEMIBOLD);
+    final MorphText pillRow = new MorphText(Weight.SEMIBOLD);
 
     private MediaTrack shown = MediaTrack.NONE;
     private long shownPlayed = -1L;
