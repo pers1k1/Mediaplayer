@@ -83,7 +83,8 @@ public final class IslandHud {
     }
 
     private static float tail() {
-        return measure.capsule() > 0.0f ? Anim.easeOutBack(measure.media()) * (CAPSULE_GAP + PILL_HEIGHT) : 0.0f;
+        float drop = Anim.easeOutBack(measure.media()) * (CAPSULE_GAP + PILL_HEIGHT) * measure.statsShare();
+        return measure.capsule() > 0.0f ? drop : 0.0f;
     }
 
     private static void paint(IslandScene scene, float x, float y) {

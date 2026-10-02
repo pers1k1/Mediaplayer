@@ -7,6 +7,7 @@ public enum IslandFlag {
     NICK("nick"),
     FPS("fps"),
     PING("ping"),
+    STATS_WITH_MEDIA("statsWithMedia"),
     COVER("cover"),
     COVER_TINT("coverTint"),
     TITLE("title"),

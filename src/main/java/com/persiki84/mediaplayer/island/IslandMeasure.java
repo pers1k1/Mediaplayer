@@ -121,6 +121,12 @@ public final class IslandMeasure {
         return cardWidth;
     }
 
+    // WHY: счётчик можно убрать на время музыки: тогда он гаснет и уходит вместе с её появлением, а
+    // WHY: без музыки по-прежнему стоит в острове рядом с ником
+    public float statsShare() {
+        return IslandSettings.on(IslandFlag.STATS_WITH_MEDIA) ? 1.0f : 1.0f - media;
+    }
+
     public float capsule() {
         return stats > 0.0f ? CAPSULE_PAD * 2.0f + stats : 0.0f;
     }

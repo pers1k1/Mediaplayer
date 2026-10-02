@@ -51,7 +51,8 @@ final class IslandCounter {
 
     static void draw(IslandScene scene, float x, float y, float width, float height, float alpha) {
         IslandMeasure measure = scene.measure();
-        if (measure.capsule() <= 0.0f || alpha <= 0.02f) return;
+        float shown = alpha * measure.statsShare();
+        if (measure.capsule() <= 0.0f || shown <= 0.02f) return;
 
         float media = measure.media();
         float capsuleLeft = x + (width - measure.capsule()) / 2.0f + CAPSULE_PAD;
@@ -60,9 +61,9 @@ final class IslandCounter {
         float centerY = Anim.lerp(y + height / 2.0f, dropped, Anim.easeOutBack(media));
         if (media > 0.02f) {
             Paint.glass(scene.graphics(), statsX - CAPSULE_PAD, centerY - PILL_HEIGHT / 2.0f, measure.capsule(),
-                    PILL_HEIGHT, Math.min(PILL_HEIGHT / 2.0f, MAX_RADIUS), alpha * media);
+                    PILL_HEIGHT, Math.min(PILL_HEIGHT / 2.0f, MAX_RADIUS), shown * media);
         }
-        stats(scene.graphics(), scene.font(), statsX, centerY, alpha);
+        stats(scene.graphics(), scene.font(), statsX, centerY, shown);
     }
 
     private static void stats(GuiGraphics graphics, Font font, float x, float centerY, float alpha) {
