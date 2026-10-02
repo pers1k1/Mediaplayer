@@ -100,11 +100,11 @@ public final class ChatDrag {
 
         outline(graphics, shown);
         if (dragging && snappedX) guide(graphics, shown);
-        float hintWidth = Ink.width(Minecraft.getInstance().font, HINT, Weight.REGULAR, HINT_SCALE);
+        float hintWidth = Ink.width(Minecraft.getInstance().font, HINT, Weight.REGULAR, Ink.fit(HINT_SCALE));
         float hintX = Anim.clamp(IslandBounds.left() + (IslandBounds.width() - hintWidth) / 2.0f, 2.0f,
                 graphics.guiWidth() - hintWidth - 2.0f);
         Ink.label(graphics, Minecraft.getInstance().font, HINT, Weight.REGULAR, hintX,
-                IslandBounds.top() + IslandBounds.height() + HINT_GAP, HINT_SCALE,
+                IslandBounds.top() + IslandBounds.height() + HINT_GAP, Ink.fit(HINT_SCALE),
                 Colors.alpha(Palette.INK_DIM, shown), 0.0f);
     }
 

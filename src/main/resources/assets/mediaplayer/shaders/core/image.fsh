@@ -18,7 +18,7 @@ in vec4 vertexColor;
 
 out vec4 fragColor;
 
-const float BLUR_LEVELS = 4.0;
+const float BLUR_LEVELS = 2.5;
 
 float roundedDistance(vec2 point, vec2 extent, float radius) {
     vec2 outside = abs(point) - extent + radius;
@@ -29,7 +29,7 @@ void main() {
     vec4 color = texture(Sampler0, texCoord, blur * BLUR_LEVELS) * vertexColor;
     float radius = min(corner, min(halfSize.x, halfSize.y));
     float edge = roundedDistance(localPoint, halfSize, radius);
-    float reach = 0.5 * max(fwidth(edge), 1.0e-3) + blur * min(halfSize.x, halfSize.y) * 0.25;
+    float reach = 0.5 * max(fwidth(edge), 1.0e-3) + blur * min(halfSize.x, halfSize.y) * 0.12;
     color.a *= 1.0 - smoothstep(-reach, reach, edge);
     if (color.a <= 0.0) {
         discard;

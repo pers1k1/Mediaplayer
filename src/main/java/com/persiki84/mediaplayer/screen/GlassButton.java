@@ -48,9 +48,9 @@ final class GlassButton extends AbstractWidget {
         int face = Colors.mix(FACE, FACE_LIT, lit);
         Paint.shape(graphics, x, y, width, height, height / 2.0f, face, Colors.mix(face, Palette.BLACK, 0.2f), 0.0f);
         Font font = Minecraft.getInstance().font;
-        float labelWidth = Ink.width(font, getMessage(), Weight.SEMIBOLD, LABEL_SCALE);
+        float labelWidth = Ink.width(font, getMessage(), Weight.SEMIBOLD, Ink.fit(LABEL_SCALE));
         Ink.label(graphics, font, getMessage(), Weight.SEMIBOLD, getX() + (getWidth() - labelWidth) / 2.0f,
-                Ink.centerY(getY(), getHeight(), LABEL_SCALE), LABEL_SCALE, Palette.INK, 0.0f);
+                Ink.centerY(getY(), getHeight(), Ink.fit(LABEL_SCALE)), Ink.fit(LABEL_SCALE), Palette.INK, 0.0f);
     }
 
     @Override

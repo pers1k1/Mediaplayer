@@ -77,7 +77,8 @@ final class DialRow {
     }
 
     void render(GuiGraphics graphics, Font font) {
-        Ink.label(graphics, font, label, Weight.REGULAR, x, Ink.centerY(y, height, LABEL_SCALE), LABEL_SCALE,
+        float scale = Ink.fit(LABEL_SCALE);
+        Ink.label(graphics, font, label, Weight.REGULAR, x, Ink.centerY(y, height, scale), scale,
                 Palette.INK_DIM, 0.0f);
         int well = field.isFocused() ? Colors.mix(Palette.WELL_TOP, Palette.ACCENT, FOCUS_TINT) : Palette.WELL_TOP;
         Paint.shape(graphics, x + width - FIELD_WIDTH, y + 1, FIELD_WIDTH, height - 2, (height - 2) / 2.0f,

@@ -46,6 +46,19 @@ public final class Typeface {
         return cache.computeIfAbsent(text, plain -> plain.copy().withStyle(style -> style.withFont(face)));
     }
 
+    // WHY: атлас шрифта читается без сглаживания (NEAREST), и растр копии, чуть больше или меньше
+    // WHY: плотности строки, дублирует или теряет столбцы пикселей - текст идёт зерном. Кегль строки
+    // WHY: в покое поэтому подгоняется к ближайшей копии, чтобы растр лёг на экран один к одному;
+    // WHY: ванильный пиксельный шрифт подгоняется к целому числу пикселей вверх
+    public static float fit(float scale, float basePixels) {
+        float density = scale * basePixels;
+        if (basePixels <= 0.0f || density <= 0.0f) return scale;
+        if (!modded()) return Math.max(1.0f, (float) Math.ceil(density - 0.05f)) / basePixels;
+        if (density < FINEST || density > FINEST + STEP * (STEPS - 1)) return scale;
+
+        return (FINEST + STEP * Math.round((density - FINEST) / STEP)) / basePixels;
+    }
+
     public static Component measured(Component text, Weight weight) {
         return styled(text, weight, 1.0f);
     }

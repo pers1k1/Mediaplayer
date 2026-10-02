@@ -54,6 +54,6 @@
   "mediaplayer.settings.dial.visualizerLight.hint": "Яркость цветов, снятых с обложки, 1 это обычная, от %s до %s",
   "mediaplayer.settings.dial.visualizerColor": "Насыщенность обложки",
   "mediaplayer.settings.dial.visualizerColor.hint": "Насыщенность цветов, снятых с обложки, 1 это обычная, от %s до %s",
-  "mediaplayer.settings.dial.flipSpeed": "Разворот обложки",
-  "mediaplayer.settings.dial.flipSpeed.hint": "Скорость разворота обложки при смене трека, 1 это обычная, от %s до %s"
+  "mediaplayer.settings.dial.flipSpeed": "Смена обложки",
+  "mediaplayer.settings.dial.flipSpeed.hint": "Как быстро старая обложка перетекает в новую при смене трека, 1 это обычная, от %s до %s"
 }

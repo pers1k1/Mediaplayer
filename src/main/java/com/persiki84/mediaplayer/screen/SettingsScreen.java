@@ -114,24 +114,26 @@ public final class SettingsScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partial) {
         super.render(graphics, mouseX, mouseY, partial);
-        float titleWidth = Ink.width(font, title, Weight.SEMIBOLD, TITLE_SCALE);
+        float titleWidth = Ink.width(font, title, Weight.SEMIBOLD, Ink.fit(TITLE_SCALE));
         Ink.label(graphics, font, title, Weight.SEMIBOLD, panelX + (panelWidth - titleWidth) / 2.0f, panelY + 9,
-                TITLE_SCALE,
+                Ink.fit(TITLE_SCALE),
                 Palette.INK, 0.0f);
         section(graphics, "mediaplayer.settings.section.show", panelX + PAD);
         section(graphics, "mediaplayer.settings.section.tune", panelX + PAD + COLUMN + GUTTER);
         Component credit = Component.translatable("mediaplayer.settings.credit");
-        float creditWidth = Ink.width(font, credit, Weight.REGULAR, NOTE_SCALE);
+        float creditWidth = Ink.width(font, credit, Weight.REGULAR, Ink.fit(NOTE_SCALE));
         Ink.label(graphics, font, credit, Weight.REGULAR, panelX + (panelWidth - creditWidth) / 2.0f,
-                panelY + panelHeight - PAD - BUTTON_HEIGHT - 9, NOTE_SCALE, Colors.alpha(Palette.INK_DIM, 0.6f), 0.0f);
+                panelY + panelHeight - PAD - BUTTON_HEIGHT - 9, Ink.fit(NOTE_SCALE), Colors.alpha(Palette.INK_DIM, 0.6f),
+                0.0f);
         Component note = Component.translatable("mediaplayer.settings.drag_note");
         Ink.label(graphics, font, note, Weight.REGULAR, panelX + PAD + COLUMN + GUTTER,
-                panelY + HEADER + IslandDial.values().length * (row + 2) + 6, NOTE_SCALE,
+                panelY + HEADER + IslandDial.values().length * (row + 2) + 6, Ink.fit(NOTE_SCALE),
                 Colors.alpha(Palette.INK_DIM, 0.8f), 0.0f);
     }
 
     private void section(GuiGraphics graphics, String key, int x) {
-        Ink.label(graphics, font, Component.translatable(key), Weight.REGULAR, x, panelY + HEADER - 9, SECTION_SCALE,
+        Ink.label(graphics, font, Component.translatable(key), Weight.REGULAR, x, panelY + HEADER - 9,
+                Ink.fit(SECTION_SCALE),
                 Colors.alpha(Palette.INK_DIM, 0.9f), 0.0f);
     }
 

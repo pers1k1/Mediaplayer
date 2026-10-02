@@ -13,7 +13,7 @@ public final class Paint {
     private static final float GLASS_SLACK = 2.0f;
     private static final float GLASS_BAND = 11.0f;
     private static final float BAND_SHARE = 0.26f;
-    private static final float BLUR_UNITS = 3.0f;
+    private static final float BLUR_UNITS = 2.0f;
     private static final float EDGE_SLACK = 1.0f;
     private static final float FAINT = 0.004f;
 

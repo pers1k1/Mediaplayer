@@ -49,7 +49,7 @@ final class GlassToggle extends AbstractWidget {
         float on = knob.to(IslandSettings.on(flag) ? 1.0f : 0.0f, delta);
         float lit = hover.to(isHoveredOrFocused() ? 1.0f : 0.0f, delta);
         Ink.label(graphics, Minecraft.getInstance().font, getMessage(), Weight.REGULAR, getX(),
-                Ink.centerY(getY(), getHeight(), LABEL_SCALE), LABEL_SCALE,
+                Ink.centerY(getY(), getHeight(), Ink.fit(LABEL_SCALE)), Ink.fit(LABEL_SCALE),
                 Colors.mix(Palette.INK_DIM, Palette.INK, Anim.clamp01(lit)), 0.0f);
         track(graphics, on, lit);
     }

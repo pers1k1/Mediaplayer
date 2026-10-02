@@ -54,6 +54,6 @@
   "mediaplayer.settings.dial.visualizerLight.hint": "Brightness of colors taken from the cover, 1 is normal, from %s to %s",
   "mediaplayer.settings.dial.visualizerColor": "Cover saturation",
   "mediaplayer.settings.dial.visualizerColor.hint": "Saturation of colors taken from the cover, 1 is normal, from %s to %s",
-  "mediaplayer.settings.dial.flipSpeed": "Cover flip speed",
-  "mediaplayer.settings.dial.flipSpeed.hint": "How fast the cover turns on a track change, 1 is normal, from %s to %s"
+  "mediaplayer.settings.dial.flipSpeed": "Cover change speed",
+  "mediaplayer.settings.dial.flipSpeed.hint": "How fast the old cover melts into the new one on a track change, 1 is normal, from %s to %s"
 }

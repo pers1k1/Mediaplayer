@@ -11,8 +11,8 @@ import org.joml.Matrix3x2f;
 public final class Ink {
     public static final float GLYPH_HEIGHT = 8.0f;
 
-    private static final float BLUR_REACH = 2.4f;
-    private static final float SPREAD = 0.82f;
+    private static final float BLUR_REACH = 1.6f;
+    private static final float SPREAD = 0.6f;
     private static final int INNER_TAPS = 6;
     private static final int OUTER_TAPS = 10;
     private static final float INNER_SHARE = 0.55f;
@@ -26,6 +26,7 @@ public final class Ink {
     private static final float FADE_GROWTH = 3.0f;
 
     private static boolean snapping = true;
+    private static float basePixels;
 
     private Ink() {}
 
@@ -91,6 +92,15 @@ public final class Ink {
 
     public static void snapping(boolean value) {
         snapping = value;
+    }
+
+    public static void basePixels(float value) {
+        basePixels = value;
+    }
+
+    public static float fit(float scale) {
+        float base = basePixels > 0.0f ? basePixels : Minecraft.getInstance().getWindow().getGuiScale();
+        return Typeface.fit(scale, base);
     }
 
     public static void line(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
