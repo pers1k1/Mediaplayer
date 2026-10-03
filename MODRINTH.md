@@ -38,9 +38,9 @@ Minecraft has no access to Windows media sessions, so the mod talks to them thro
 
 ## Network: lyrics only
 
-The only network request the mod makes is the lyrics lookup, and only while the Lyrics setting is on:
+The only network requests the mod makes are the lyrics lookup, and only while the Lyrics setting is on:
 
-- It goes to [lrclib.net](https://lrclib.net), a free public lyrics database, over HTTPS.
+- They go over HTTPS to [lrclib.net](https://lrclib.net), a free public lyrics database, and to NetEase Cloud Music (music.163.com), whose word-timed lyrics know where a singer holds a word.
 - It sends the title and the artist of the playing track. Nothing about you, your game or your computer.
 - One request per track, only after the track has played for a moment, no more than once every 3 seconds and 10 times a minute. Found and missing lyrics are cached in `.minecraft/glassmediaplayer/lyrics`, so a song is looked up once.
 - Switch Lyrics off in settings (`K`) and the mod makes no network requests at all.
@@ -65,4 +65,4 @@ The liquid glass look follows ReGlass by RedxAx. The Inter typeface is under the
 - Лирика: поющаяся строка стоит на месте названия и подсвечивается по буквам под голос, смена строк идёт в темпе песни.
 - `K` открывает настройки. Двигать остров: открыть чат и тянуть мышью, колесо меняет размер, правая кнопка возвращает на место.
 
-Требуется Minecraft 1.21.11, Fabric Loader 0.19.5+, Fabric API, для музыки Windows 10 или 11. Мост к плееру: PowerShell запускает скрипт из jar, тот собирает штатным компилятором Windows библиотеку на C# из исходника в том же jar; мост в сеть не ходит. Единственный сетевой запрос это поиск лирики на lrclib.net по HTTPS: туда уходят название и исполнитель трека. Выключите «Лирику» в настройках, и мод не обращается к сети вовсе.
+Требуется Minecraft 1.21.11, Fabric Loader 0.19.5+, Fabric API, для музыки Windows 10 или 11. Мост к плееру: PowerShell запускает скрипт из jar, тот собирает штатным компилятором Windows библиотеку на C# из исходника в том же jar; мост в сеть не ходит. Единственные сетевые запросы это поиск лирики на lrclib.net и в NetEase Cloud Music по HTTPS: туда уходят название и исполнитель трека. Выключите «Лирику» в настройках, и мод не обращается к сети вовсе.
