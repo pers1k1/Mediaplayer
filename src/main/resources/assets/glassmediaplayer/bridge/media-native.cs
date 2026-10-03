@@ -22,6 +22,8 @@ public static class MediaplayerMedia {
     const int HeardHold = 6;
     const int ArtSettlePolls = 6;
     const int SettlePolls = 4;
+    const long ArtPixelLimit = 4096L * 4096L;
+    const int ArtEdge = 512;
     const int FieldLimit = 512;
 
     static readonly string[] Sites = {
@@ -187,14 +189,23 @@ public static class MediaplayerMedia {
     static string Blind() {
         string app = Sounding();
         if (app.Length == 0) {
-            signature = "";
+            Unsettle();
             return "{\"ok\":false}";
         }
         return Heard(app, lastSite);
     }
 
-    static string Heard(string app, string site) {
+    // WHY: сессия, закрытая сразу после смены трека, оставляла ожидание обложки взведённым, и мост
+    // WHY: опрашивал впятеро чаще до конца игры, хотя ничего не играло
+    static void Unsettle() {
         signature = "";
+        artOwed = false;
+        artWait = 0;
+        settlePolls = 0;
+    }
+
+    static string Heard(string app, string site) {
+        Unsettle();
         var json = new StringBuilder("{\"ok\":true,\"blind\":true");
         Put(json, "app", app);
         Put(json, "site", site);
@@ -253,7 +264,8 @@ public static class MediaplayerMedia {
     // WHY: новую картинку принимают и посреди трека
     static void Restamp(string app, GlobalSystemMediaTransportControlsSessionMediaProperties properties, string artPath) {
         Retitle(app + "|" + (properties.Title ?? "") + "|" + (properties.Artist ?? ""));
-        bool waiting = artOwed && artWait-- > 0;
+        bool waiting = artWait > 0;
+        if (waiting) artWait--;
         byte[] raw = ReadArt(properties);
         if (raw.Length == 0) {
             if (artOwed) DropArt();
@@ -264,15 +276,22 @@ public static class MediaplayerMedia {
         ulong hash = Fingerprint(raw);
         if (waiting && hash == retiredHash) return;
         if (hash == artHash && !artOwed) return;
-        if (hash != artHash && !SaveArt(raw, artPath)) {
-            if (artOwed) DropArt();
-            artHash = hash;
-            artOwed = false;
-            return;
-        }
+        if (hash != artHash && !Publish(raw, hash, artPath)) return;
         artHash = hash;
         artStamp = ++artCounter;
         artOwed = false;
+    }
+
+    // WHY: нечитаемая картинка помечается увиденной и больше не разбирается, а сбой записи (файл
+    // WHY: держит антивирус или игра ещё читает прошлый) ничего не помечает: следующий опрос повторит
+    static bool Publish(byte[] raw, ulong hash, string artPath) {
+        byte[] png = Decode(raw);
+        if (png != null) return WriteArt(png, artPath);
+
+        if (artOwed) DropArt();
+        artHash = hash;
+        artOwed = false;
+        return false;
     }
 
     static void Retitle(string stamp) {
@@ -294,7 +313,7 @@ public static class MediaplayerMedia {
     // WHY: после смены трека опросы идут чаще, пока название и обложка не устоятся: иначе исправление
     // WHY: от плеера доходило до острова только через полсекунды-секунду
     public static bool Settling() {
-        if (artOwed) return true;
+        if (artOwed && artWait > 0) return true;
         return settlePolls-- > 0;
     }
 
@@ -344,15 +363,12 @@ public static class MediaplayerMedia {
         return json.ToString();
     }
 
-    static bool SaveArt(byte[] raw, string artPath) {
+    static bool WriteArt(byte[] png, string artPath) {
         if (string.IsNullOrEmpty(artPath)) return false;
 
+        string staging = artPath + ".part";
         try {
-            byte[] bytes = AsPng(raw);
-            if (bytes.Length == 0) return false;
-
-            string staging = artPath + ".part";
-            File.WriteAllBytes(staging, bytes);
+            File.WriteAllBytes(staging, png);
             if (File.Exists(artPath)) File.Delete(artPath);
             File.Move(staging, artPath);
             return true;
@@ -362,15 +378,36 @@ public static class MediaplayerMedia {
     }
 
     // WHY: «Медиаплеер» и Telegram отдают обложку и в BMP, который декодер игры не берёт («Corrupt
-    // WHY: BMP»): остров держал обложку прошлого трека и перечитывал файл каждый кадр. Любая картинка
-    // WHY: перекладывается в PNG средствами Windows, нечитаемая бросает и считается отсутствующей
-    static byte[] AsPng(byte[] bytes) {
-        if (bytes.Length == 0) return bytes;
+    // WHY: BMP»): любая картинка перекладывается в PNG средствами Windows. Размер в пикселях
+    // WHY: проверяется по заголовку до разжатия: JPEG 16384x16384 весит единицы мегабайт, а разжатый
+    // WHY: занимает гигабайт и в мосте, и в игре. Метафайлы (EMF, WMF) не принимаются, обложка
+    // WHY: ужимается до ArtEdge: остров всё равно не рисует её крупнее
+    static byte[] Decode(byte[] bytes) {
+        try {
+            using (var source = new MemoryStream(bytes))
+            using (var image = System.Drawing.Image.FromStream(source, false, false)) {
+                if (!Raster(image.RawFormat) || image.Width <= 0 || image.Height <= 0) return null;
+                if ((long)image.Width * image.Height > ArtPixelLimit) return null;
+                return Shrunk(image);
+            }
+        } catch {
+            return null;
+        }
+    }
 
-        using (var source = new MemoryStream(bytes))
-        using (var image = System.Drawing.Image.FromStream(source))
+    static bool Raster(System.Drawing.Imaging.ImageFormat format) {
+        Guid kind = format.Guid;
+        return kind == System.Drawing.Imaging.ImageFormat.Png.Guid || kind == System.Drawing.Imaging.ImageFormat.Jpeg.Guid
+            || kind == System.Drawing.Imaging.ImageFormat.Bmp.Guid || kind == System.Drawing.Imaging.ImageFormat.Gif.Guid;
+    }
+
+    static byte[] Shrunk(System.Drawing.Image image) {
+        double scale = Math.Min(1.0, ArtEdge / (double)Math.Max(image.Width, image.Height));
+        int width = Math.Max(1, (int)Math.Round(image.Width * scale));
+        int height = Math.Max(1, (int)Math.Round(image.Height * scale));
+        using (var bitmap = new System.Drawing.Bitmap(image, width, height))
         using (var target = new MemoryStream()) {
-            image.Save(target, System.Drawing.Imaging.ImageFormat.Png);
+            bitmap.Save(target, System.Drawing.Imaging.ImageFormat.Png);
             return target.ToArray();
         }
     }
