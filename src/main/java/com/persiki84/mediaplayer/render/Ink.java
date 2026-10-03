@@ -229,6 +229,14 @@ public final class Ink {
         }
     }
 
+    // WHY: та же гаснущая кромка, что у бегущей строки, для строки посреди смены: уехавшие за край
+    // WHY: буквы прокрученной строки иначе проступали на время морфа
+    public static float edge(float left, float x, float slot, float scale) {
+        float margin = margin(slot, scale);
+        float fade = Math.max(margin, Math.min(LINE_UNITS * scale * FADE_LINES, slot * FADE_BOX_SHARE));
+        return Math.min(Anim.clamp01((left - (x - margin)) / fade), Anim.clamp01((x + slot + margin - left) / fade));
+    }
+
     private static float margin(float slot, float scale) {
         return Math.min(LINE_UNITS * scale * MARGIN_LINES, slot * MARGIN_BOX_SHARE);
     }

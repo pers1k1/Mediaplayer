@@ -25,6 +25,22 @@ public final class MorphText {
     private float leaving;
     private float lastDelta;
     private boolean followFresh = true;
+    private boolean whole;
+    private float[] litShown = new float[0];
+    private int accentShown = -1;
+    private float[] leavingLit = new float[0];
+    private int leavingAccent = -1;
+    private final Sweep leavingSweep = new Sweep() {
+        @Override
+        public float lit(int index) {
+            return index >= 0 && index < leavingLit.length ? leavingLit[index] : 1.0f;
+        }
+
+        @Override
+        public int accent(int base) {
+            return leavingAccent;
+        }
+    };
     private int prefix;
     private int suffix;
 
@@ -40,13 +56,20 @@ public final class MorphText {
     // WHY: строки лирики идут в темпе песни: в быстром речитативе следующая строка приходит через
     // WHY: секунду, и полный морф съедал бы её половину. Смена укладывается в seconds, если оно
     // WHY: задано, иначе идёт своим обычным ходом
+    // WHY: строка лирики меняется целиком, волной: общий хвост двух разных строк случаен (точка, одна
+    // WHY: буква), и он уезжал на новое место без анимации. Уходящая строка уносит с собой ровно тот
+    // WHY: вид, каким горела в последнем кадре
     public void set(String next, float seconds) {
         if (current.raw().equals(next)) return;
 
         previous.take(current);
         current.set(next);
-        prefix = commonPrefix(previous.glyphs(), current.glyphs());
-        suffix = commonSuffix(previous.glyphs(), current.glyphs(), prefix);
+        whole = seconds > 0.0f;
+        prefix = whole ? 0 : commonPrefix(previous.glyphs(), current.glyphs());
+        suffix = whole ? 0 : commonSuffix(previous.glyphs(), current.glyphs(), prefix);
+        leavingLit = litShown;
+        leavingAccent = accentShown;
+        litShown = new float[0];
         clock = previous.isEmpty() ? Float.MAX_VALUE : 0.0f;
         leaving = shown;
         shown = 0.0f;
@@ -86,15 +109,16 @@ public final class MorphText {
                      float blur, Sweep sweep) {
         if (!morphing()) {
             shown = Ink.line(graphics, font, current, x, y, slot, scale, color, blur, sweep, follow(font, slot, scale, sweep));
+            remember(sweep);
             return;
         }
         Ink.Point start = Ink.origin(graphics, x, y);
         Ink.clipped(graphics, x, y, slot, scale, () -> {
-            Lane now = new Lane(current, font, scale, x - slot, x + slot * 2.0f, 0.0f);
-            Lane was = new Lane(previous, font, scale, x - slot, x + slot * 2.0f, leaving / scale);
+            Lane now = new Lane(current, font, scale, x, slot, 0.0f);
+            Lane was = new Lane(previous, font, scale, x, slot, leaving / scale);
             steady(graphics, now, was, start.x(), start.y(), scale, color, blur, sweep);
             changed(graphics, now, was, start.x(), start.y(), scale, color, blur, 1.0f, sweep);
-            changed(graphics, was, now, start.x(), start.y(), scale, color, blur, -1.0f, Sweep.NONE);
+            changed(graphics, was, now, start.x(), start.y(), scale, color, blur, -1.0f, leavingSweep);
         });
     }
 
@@ -115,14 +139,19 @@ public final class MorphText {
 
     // WHY: уходящая строка уезжает с того места, где стояла: прокрученная бегущей строкой длинная
     // WHY: строка иначе в первый кадр смены отскакивала к своему началу
-    private record Lane(Line line, Font font, Component[] glyphs, float[] offsets, float minX, float maxX,
-                        float scroll) {
-        Lane(Line line, Font font, float scale, float minX, float maxX, float scroll) {
-            this(line, font, line.glyphs(), line.offsets(font, scale), minX, maxX, scroll);
+    private record Lane(Line line, Font font, Component[] glyphs, float[] offsets, float x, float slot, float scale,
+                        float scroll, boolean overflow) {
+        Lane(Line line, Font font, float scale, float x, float slot, float scroll) {
+            this(line, font, line.glyphs(), line.offsets(font, scale), x, slot, scale, scroll,
+                    scroll > 0.0f || line.width(font, scale) > slot + 0.5f);
         }
 
         boolean outside(float left) {
-            return left < minX || left > maxX;
+            return left < x - slot || left > x + slot * 2.0f;
+        }
+
+        float edge(float left) {
+            return overflow ? Ink.edge(left, x, slot, scale) : 1.0f;
         }
 
         float left(int index) {
@@ -142,12 +171,13 @@ public final class MorphText {
         int shift = was.glyphs().length - now.glyphs().length;
         for (int index = 0; index < now.glyphs().length; index++) {
             boolean tail = index >= now.glyphs().length - suffix;
-            if (index >= prefix && !tail && !now.holds(index, was)) continue;
+            if (index >= prefix && !tail && !holds(now, index, was)) continue;
             float from = tail ? was.left(index + shift) : now.left(index);
             float left = x + Anim.lerp(from, now.left(index), slide) * scale;
-            if (now.outside(left)) continue;
-            Ink.sungGlyph(graphics, now.font(), now.glyphs()[index], current.weight(), left, y, scale, color, blur,
-                    sweep, index);
+            float edge = now.edge(left);
+            if (now.outside(left) || edge <= 0.01f) continue;
+            Ink.sungGlyph(graphics, now.font(), now.glyphs()[index], current.weight(), left, y, scale,
+                    Colors.alpha(color, edge), blur, sweep, index);
         }
     }
 
@@ -158,15 +188,27 @@ public final class MorphText {
         int last = lane.glyphs().length - suffix;
         for (int index = prefix; index < last; index++) {
             float left = x + lane.left(index) * scale;
-            if (lane.holds(index, other) || lane.outside(left)) continue;
+            float edge = lane.edge(left);
+            if (holds(lane, index, other) || lane.outside(left) || edge <= 0.01f) continue;
             float wave = Math.min(STAGGER_LIMIT, Math.min(index - prefix, changedSpan() - 1) * STAGGER_SECONDS);
             float share = Anim.smoothstep(0.0f, 1.0f, (clock - wave) / GLYPH_SECONDS);
             float shown = direction > 0.0f ? share : 1.0f - share;
             float lift = direction > 0.0f ? 1.0f - share : -share;
             Ink.sungGlyph(graphics, lane.font(), lane.glyphs()[index], lane.line().weight(), left,
-                    y + lift * TRAVEL_UNITS * scale, scale, Colors.alpha(color, shown), Math.max(blur, 1.0f - shown),
+                    y + lift * TRAVEL_UNITS * scale, scale, Colors.alpha(color, shown * edge), Math.max(blur, 1.0f - shown),
                     sweep, index);
         }
+    }
+
+    private boolean holds(Lane lane, int index, Lane other) {
+        return !whole && lane.holds(index, other);
+    }
+
+    private void remember(Sweep sweep) {
+        int count = current.glyphs().length;
+        if (litShown.length != count) litShown = new float[count];
+        for (int index = 0; index < count; index++) litShown[index] = sweep.lit(index);
+        accentShown = sweep.accent(-1);
     }
 
     private static int commonPrefix(Component[] was, Component[] now) {
