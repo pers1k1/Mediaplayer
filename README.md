@@ -20,6 +20,8 @@ Glass media island for the Minecraft HUD (Fabric 1.21.11): the track playing in 
 MODRINTH_TOKEN=<токен> JAVA_HOME="C:\Program Files\Java\jdk-25.0.2" ./gradlew modrinth modrinthSyncBody
 ```
 
+Minotaur 2.10.0 не задаёт окружение версии, и Modrinth ставит ей `unknown`. После загрузки окружение выставляется отдельно: `PATCH https://api.modrinth.com/v3/version/<id версии>` с телом `{"environment":"client_only"}`.
+
 ## Что умеет
 
 - **Трек из любого плеера Windows.** Браузеры (YouTube, SoundCloud, Яндекс Музыка, VK и другие), Spotify, AIMP, foobar2000, Telegram, Медиаплеер Windows. Остров подхватывает всё, что публикует сессию SMTC, и звук приложений, которые перестали её публиковать.
