@@ -6,7 +6,7 @@ Glass media island for the Minecraft HUD (Fabric 1.21.11): the track playing in 
 
 ## Скачать
 
-Последний выпуск: [Mediaplayer 1.0.0](https://github.com/pers1k1/Mediaplayer/releases/latest), файл `mediaplayer-1.0.0.jar`. Положить в папку `mods` вместе с [Fabric API](https://modrinth.com/mod/fabric-api) для Minecraft 1.21.11.
+Последний выпуск: [Mediaplayer 1.0.1](https://github.com/pers1k1/Mediaplayer/releases/latest), файл `mediaplayer-1.0.1.jar`. Положить в папку `mods` вместе с [Fabric API](https://modrinth.com/mod/fabric-api) для Minecraft 1.21.11.
 
 ## Что умеет
 
