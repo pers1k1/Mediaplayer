@@ -49,8 +49,8 @@ while ($true) {
     try {
         if ([MediaplayerRemote]::Obey()) { $tick = [Math]::Min($tick, 6) }
         if ($tick -le 0) {
-            $tick = 32
             $state = [MediaplayerMedia]::Poll($artPath)
+            $tick = if ([MediaplayerMedia]::Settling()) { 6 } else { 32 }
             [Console]::Out.WriteLine($state)
             $match = [regex]::Match($state, '"app":"([^"]*)"')
             $app = if ($match.Success) { $match.Groups[1].Value } else { '' }
