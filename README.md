@@ -1,4 +1,4 @@
-# Mediaplayer
+# Glass MediaPlayer Island
 
 Glass media island for the Minecraft HUD (Fabric 1.21.11): the track playing in Windows, its cover art, a live sound visualizer, FPS and ping. The island moves like the Dynamic Island on iPhone, with springs measured frame by frame from a screen recording. Client-only.
 
@@ -6,7 +6,19 @@ Glass media island for the Minecraft HUD (Fabric 1.21.11): the track playing in 
 
 ## Скачать
 
-Последний выпуск: [Mediaplayer 1.0.1](https://github.com/pers1k1/Mediaplayer/releases/latest), файл `mediaplayer-1.0.1.jar`. Положить в папку `mods` вместе с [Fabric API](https://modrinth.com/mod/fabric-api) для Minecraft 1.21.11.
+[Modrinth](https://modrinth.com/mod/glass-mediaplayer-island) или [GitHub](https://github.com/pers1k1/Mediaplayer/releases/latest), файл `glassmediaplayer-1.1.0.jar`. Положить в папку `mods` вместе с [Fabric API](https://modrinth.com/mod/fabric-api) для Minecraft 1.21.11.
+
+## Имя и mod id
+
+С версии 1.1.0 мод называется Glass MediaPlayer Island, mod id `glassmediaplayer`. Прежний id `mediaplayer` занят другим модом (библиотекой MediaPlayer на ffmpeg), и Fabric не загрузил бы оба сразу. Старый `mediaplayer-1.0.x.jar` из папки `mods` нужно удалить.
+
+## Выпуск на Modrinth
+
+Описание проекта лежит в `MODRINTH.md`, ченджлог версии в `changelog/<версия>.md`. Загрузка версии и описания:
+
+```
+MODRINTH_TOKEN=<токен> JAVA_HOME="C:\Program Files\Java\jdk-25.0.2" ./gradlew modrinth modrinthSyncBody
+```
 
 ## Что умеет
 
@@ -48,7 +60,7 @@ Glass media island for the Minecraft HUD (Fabric 1.21.11): the track playing in 
 
 ## Настройки
 
-Экран открывается клавишей `K` или через ModMenu, если он установлен. Всё сохраняется в `config/mediaplayer.json`.
+Экран открывается клавишей `K` или через ModMenu, если он установлен. Всё сохраняется в `config/glassmediaplayer.json`; настройки из `config/mediaplayer.json` версий 1.0.x подхватываются при первом запуске.
 
 - **Что показывает остров:** музыка, карточка трека, голова игрока, ник, FPS, пинг, обложка, цвета обложки для полосок, название, исполнитель, таймер, полоса прогресса, визуализатор, шрифт мода (по умолчанию включён, выключенный даёт ванильный шрифт), FPS и пинг при музыке.
 - **Карточка и визуализатор** (числа вводом): сколько секунд держится карточка, чувствительность, резкость и скорость подъёма полосок, яркость и насыщенность цветов обложки, скорость разворота обложки.
@@ -56,7 +68,7 @@ Glass media island for the Minecraft HUD (Fabric 1.21.11): the track playing in 
 ## Требования
 
 - Minecraft 1.21.11, Fabric Loader 0.19.5 или новее, Fabric API.
-- Для музыки нужна Windows 10 или 11. Мост к плееру это PowerShell и библиотека на C#, которая собирается штатным компилятором .NET Framework 4 при первом запуске и кладётся в `.minecraft/mediaplayer`. На других системах остров показывает ник, FPS и пинг.
+- Для музыки нужна Windows 10 или 11. Мост к плееру это PowerShell и библиотека на C#, которая собирается штатным компилятором .NET Framework 4 при первом запуске и кладётся в `.minecraft/glassmediaplayer`. На других системах остров показывает ник, FPS и пинг.
 - ModMenu 17 не обязателен.
 
 ## Сборка
@@ -65,7 +77,7 @@ Glass media island for the Minecraft HUD (Fabric 1.21.11): the track playing in 
 JAVA_HOME="C:\Program Files\Java\jdk-25.0.2" ./gradlew build
 ```
 
-Gradle 9.7.0 и Loom 1.18.2 запускаются на JDK 25, байткод мода собирается под Java 21. Готовый jar лежит в `build/libs/mediaplayer-<версия>.jar`.
+Gradle 9.7.0 и Loom 1.18.2 запускаются на JDK 25, байткод мода собирается под Java 21. Готовый jar лежит в `build/libs/glassmediaplayer-<версия>.jar`.
 
 ## License and attribution
 
@@ -75,7 +87,7 @@ its complete source under the same license and keep a visible credit to the
 author - pers1k1, https://github.com/pers1k1. Closed-source derivatives and
 builds with the attribution stripped out are not permitted.
 
-The Inter typeface in `assets/mediaplayer/font` is under the SIL Open Font License 1.1, see
+The Inter typeface in `assets/glassmediaplayer/font` is under the SIL Open Font License 1.1, see
 [licenses/Inter-OFL.txt](licenses/Inter-OFL.txt).
 
 The liquid glass look follows ReGlass by RedxAx, the reference for the refraction,
