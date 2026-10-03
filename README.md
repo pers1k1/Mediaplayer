@@ -6,11 +6,11 @@ Glass media island for the Minecraft HUD (Fabric 1.21.11): the track playing in 
 
 ## Скачать
 
-[Modrinth](https://modrinth.com/mod/glass-mediaplayer-island) или [GitHub](https://github.com/pers1k1/Mediaplayer/releases/latest), файл `glassmediaplayer-1.2.0.jar`. Положить в папку `mods` вместе с [Fabric API](https://modrinth.com/mod/fabric-api) для Minecraft 1.21.11.
+[Modrinth](https://modrinth.com/mod/glass-mediaplayer-island) или [GitHub](https://github.com/pers1k1/Mediaplayer/releases/latest), файл `glassmediaplayer-1.0.0.jar`. Положить в папку `mods` вместе с [Fabric API](https://modrinth.com/mod/fabric-api) для Minecraft 1.21.11.
 
 ## Имя и mod id
 
-С версии 1.1.0 мод называется Glass MediaPlayer Island, mod id `glassmediaplayer`. Прежний id `mediaplayer` занят другим модом (библиотекой MediaPlayer на ffmpeg), и Fabric не загрузил бы оба сразу. Старый `mediaplayer-1.0.x.jar` из папки `mods` нужно удалить.
+Мод называется Glass MediaPlayer Island, mod id `glassmediaplayer`, и его версии начинаются с 1.0.0. Ранние сборки для друзей назывались Mediaplayer с id `mediaplayer`, но этот id занят другим модом (библиотекой MediaPlayer на ffmpeg), и Fabric не загрузил бы оба сразу. Старый `mediaplayer-*.jar` из папки `mods` нужно удалить.
 
 ## Выпуск на Modrinth
 
@@ -74,7 +74,7 @@ Minotaur 2.10.0 не задаёт окружение версии, и Modrinth �
 
 ## Настройки
 
-Экран открывается клавишей `K` или через ModMenu, если он установлен. Всё сохраняется в `config/glassmediaplayer.json`; настройки из `config/mediaplayer.json` версий 1.0.x подхватываются при первом запуске.
+Экран открывается клавишей `K` или через ModMenu, если он установлен. Всё сохраняется в `config/glassmediaplayer.json`; настройки из `config/mediaplayer.json` ранних сборок Mediaplayer подхватываются при первом запуске.
 
 - **Что показывает остров:** музыка, карточка трека, голова игрока, ник, FPS, пинг, обложка, цвета обложки для полосок, название, исполнитель, лирика (по умолчанию включена), таймер, полоса прогресса, визуализатор, шрифт мода (по умолчанию включён, выключенный даёт ванильный шрифт), FPS и пинг при музыке.
 - **Карточка и визуализатор** (числа вводом): сколько секунд держится карточка, чувствительность, резкость и скорость подъёма полосок, яркость и насыщенность цветов обложки, скорость разворота обложки, сдвиг лирики.

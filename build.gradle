@@ -63,7 +63,7 @@ modrinth {
     token = System.getenv('MODRINTH_TOKEN')
     projectId = 'glass-mediaplayer-island'
     versionNumber = project.mod_version
-    versionType = 'beta'
+    versionType = 'release'
     uploadFile = remapJar
     gameVersions = [project.minecraft_version]
     loaders = ['fabric']
