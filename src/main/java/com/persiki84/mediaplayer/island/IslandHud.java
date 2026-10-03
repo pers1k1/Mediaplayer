@@ -70,7 +70,7 @@ public final class IslandHud {
         float center = Anim.clamp(placement.centerShare() * graphics.guiWidth(), span / 2.0f,
                 Math.max(span / 2.0f, graphics.guiWidth() - span / 2.0f));
         float top = Anim.clamp(placement.topShare() * graphics.guiHeight(), 0.0f,
-                Math.max(0.0f, graphics.guiHeight() - CARD_HEIGHT * scale));
+                Math.max(0.0f, graphics.guiHeight() - Math.max(CARD_HEIGHT * scale, tall)));
         IslandBounds.set(center - span / 2.0f, top, span, tall);
         graphics.pose().pushMatrix();
         graphics.pose().translate(center, top);
