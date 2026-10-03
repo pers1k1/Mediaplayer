@@ -1,5 +1,6 @@
 plugins {
     id 'fabric-loom' version "${loom_version}"
+    id 'com.modrinth.minotaur' version "${minotaur_version}"
 }
 
 version = project.mod_version
@@ -50,5 +51,21 @@ jar {
     from('NOTICE')
     from('licenses') {
         into 'licenses'
+    }
+}
+
+modrinth {
+    token = System.getenv('MODRINTH_TOKEN')
+    projectId = 'glass-mediaplayer-island'
+    versionNumber = project.mod_version
+    versionType = 'beta'
+    uploadFile = remapJar
+    gameVersions = [project.minecraft_version]
+    loaders = ['fabric']
+    changelog = rootProject.file("changelog/${project.mod_version}.md").text
+    syncBodyFrom = rootProject.file('MODRINTH.md').text
+    dependencies {
+        required.project 'fabric-api'
+        optional.project 'modmenu'
     }
 }
