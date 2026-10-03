@@ -36,7 +36,7 @@
   "glassmediaplayer.settings.flag.artist": "Artist",
   "glassmediaplayer.settings.flag.artist.hint": "Artist line in the card",
   "glassmediaplayer.settings.flag.lyrics": "Lyrics",
-  "glassmediaplayer.settings.flag.lyrics.hint": "Synced lyrics in place of the title, lit letter by letter. Looked up on lrclib.net: the title and artist of the track are sent there",
+  "glassmediaplayer.settings.flag.lyrics.hint": "Synced lyrics in place of the title, lit letter by letter. Looked up on lrclib.net and NetEase Cloud Music (music.163.com): the title and artist of the track are sent there",
   "glassmediaplayer.settings.flag.time": "Timer",
   "glassmediaplayer.settings.flag.time.hint": "Elapsed and total time of the track",
   "glassmediaplayer.settings.flag.bar": "Progress bar",
