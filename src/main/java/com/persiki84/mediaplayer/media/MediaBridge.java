@@ -21,8 +21,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public final class MediaBridge {
-    private static final String RESOURCES = "/assets/mediaplayer/bridge/";
-    private static final String FOLDER = "glassmediaplayer";
+    private static final String RESOURCES = "/assets/" + Mediaplayer.MOD_ID + "/bridge/";
+    private static final String FOLDER = Mediaplayer.MOD_ID;
     private static final String SCRIPT = "media-watch.ps1";
     private static final String NATIVE = "media-native.cs";
     private static final String ART = "media-art.png";
