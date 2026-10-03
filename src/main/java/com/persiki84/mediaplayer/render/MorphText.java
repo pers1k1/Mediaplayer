@@ -15,6 +15,7 @@ public final class MorphText {
     private static final float STAGGER_SECONDS = 0.02f;
     private static final float STAGGER_LIMIT = 0.3f;
     private static final float TRAVEL_UNITS = 2.0f;
+    private static final float FOLLOW_RATE = 7.0f;
 
     private final Line current;
     private final Line previous;
@@ -22,6 +23,8 @@ public final class MorphText {
     private float tempo = 1.0f;
     private float shown;
     private float leaving;
+    private float lastDelta;
+    private boolean followFresh = true;
     private int prefix;
     private int suffix;
 
@@ -47,10 +50,12 @@ public final class MorphText {
         clock = previous.isEmpty() ? Float.MAX_VALUE : 0.0f;
         leaving = shown;
         shown = 0.0f;
+        followFresh = true;
         tempo = seconds > 0.0f ? Math.max(0.05f, seconds / duration()) : 1.0f;
     }
 
     public void advance(float delta) {
+        lastDelta = delta;
         if (clock < Float.MAX_VALUE) clock += delta / tempo;
     }
 
@@ -80,7 +85,7 @@ public final class MorphText {
     public void draw(GuiGraphics graphics, Font font, float x, float y, float slot, float scale, int color,
                      float blur, Sweep sweep) {
         if (!morphing()) {
-            shown = Ink.line(graphics, font, current, x, y, slot, scale, color, blur, sweep);
+            shown = Ink.line(graphics, font, current, x, y, slot, scale, color, blur, sweep, follow(font, slot, scale, sweep));
             return;
         }
         Ink.Point start = Ink.origin(graphics, x, y);
@@ -91,6 +96,21 @@ public final class MorphText {
             changed(graphics, now, was, start.x(), start.y(), scale, color, blur, 1.0f, sweep);
             changed(graphics, was, now, start.x(), start.y(), scale, color, blur, -1.0f, Sweep.NONE);
         });
+    }
+
+    // WHY: строка лирики длиннее слота догоняет голос экспоненциально, а не встаёт на место скачком:
+    // WHY: метки слов и смена строки дают ступени, и бегущая строка дёргалась бы на каждой. Новая строка
+    // WHY: начинает с цели сразу, без догона из прошлого положения
+    private float follow(Font font, float slot, float scale, Sweep sweep) {
+        if (sweep.head() < 0.0f) return -1.0f;
+
+        float target = Ink.followTarget(font, current, scale, slot, sweep);
+        if (followFresh) {
+            followFresh = false;
+            shown = target;
+            return target;
+        }
+        return shown + (target - shown) * (1.0f - (float) Math.exp(-FOLLOW_RATE * lastDelta));
     }
 
     // WHY: уходящая строка уезжает с того места, где стояла: прокрученная бегущей строкой длинная
@@ -126,9 +146,8 @@ public final class MorphText {
             float from = tail ? was.left(index + shift) : now.left(index);
             float left = x + Anim.lerp(from, now.left(index), slide) * scale;
             if (now.outside(left)) continue;
-            float lit = sweep.lit(index);
-            Ink.glyph(graphics, now.font(), now.glyphs()[index], current.weight(), left, y + Ink.lift(lit) * scale,
-                    scale, Ink.sung(color, lit), blur);
+            Ink.sungGlyph(graphics, now.font(), now.glyphs()[index], current.weight(), left, y, scale, color, blur,
+                    sweep, index);
         }
     }
 
@@ -144,10 +163,9 @@ public final class MorphText {
             float share = Anim.smoothstep(0.0f, 1.0f, (clock - wave) / GLYPH_SECONDS);
             float shown = direction > 0.0f ? share : 1.0f - share;
             float lift = direction > 0.0f ? 1.0f - share : -share;
-            float lit = sweep.lit(index);
-            Ink.glyph(graphics, lane.font(), lane.glyphs()[index], lane.line().weight(), left,
-                    y + (lift * TRAVEL_UNITS + Ink.lift(lit)) * scale, scale, Ink.sung(Colors.alpha(color, shown), lit),
-                    Math.max(blur, 1.0f - shown));
+            Ink.sungGlyph(graphics, lane.font(), lane.glyphs()[index], lane.line().weight(), left,
+                    y + lift * TRAVEL_UNITS * scale, scale, Colors.alpha(color, shown), Math.max(blur, 1.0f - shown),
+                    sweep, index);
         }
     }
 

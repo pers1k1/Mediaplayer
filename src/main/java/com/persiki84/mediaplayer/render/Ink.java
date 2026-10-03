@@ -31,6 +31,10 @@ public final class Ink {
     private static final float FOLLOW_SHARE = 0.45f;
     private static final float UNSUNG = 0.42f;
     private static final float LIFT_UNITS = 0.55f;
+    private static final float ACCENT_SHARE = 0.55f;
+    private static final float BLOOM_SHARE = 0.07f;
+    private static final float BLOOM_REACH = 1.1f;
+    private static final int BLOOM_TAPS = 8;
 
     private static boolean snapping = true;
     private static float basePixels;
@@ -151,53 +155,65 @@ public final class Ink {
 
     public static float line(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
                              int color, float blur) {
-        return line(graphics, font, line, x, y, slot, scale, color, blur, Sweep.NONE);
+        return line(graphics, font, line, x, y, slot, scale, color, blur, Sweep.NONE, -1.0f);
     }
 
+    // WHY: scroll не меньше нуля задаёт сдвиг строки снаружи: строку лирики двигает её сглаженное
+    // WHY: следование за голосом, а не часы бегущей строки
     public static float line(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
-                             int color, float blur, Sweep sweep) {
+                             int color, float blur, Sweep sweep, float scroll) {
         float span = line.width(font, scale);
         boolean overflow = span > slot;
         float shift = !overflow || blur > SHARP ? 0.0f
-                : sweep == Sweep.NONE ? Marquee.shift(line.raw(), span - slot) : follow(font, line, scale, slot, span, sweep);
+                : scroll >= 0.0f ? Math.min(scroll, span - slot) : Marquee.shift(line.raw(), span - slot);
+        boolean gliding = scroll > 0.0f;
         clipped(graphics, x, y, slot, scale, () -> run(graphics, font, line, x, y, slot, scale, color, blur, shift,
-                overflow, sweep));
+                overflow, sweep, gliding));
         return shift;
     }
 
-    // WHY: строка лирики длиннее слота едет не по своим часам, а за волной подсветки: пропеваемая
-    // WHY: буква держится на FOLLOW_SHARE слота, иначе бегущая строка показывала бы не то место, что поют
-    private static float follow(Font font, Line line, float scale, float slot, float span, Sweep sweep) {
+    // WHY: место голоса внутри строки берётся дробным индексом буквы, а не первой недогоревшей
+    // WHY: буквой: та прыгала на соседнюю, как только догорала, и строка ехала рывками. Пропеваемое
+    // WHY: место держится на FOLLOW_SHARE слота
+    public static float followTarget(Font font, Line line, float scale, float slot, Sweep sweep) {
+        float span = line.width(font, scale);
+        float head = sweep.head();
+        if (span <= slot || head < 0.0f) return 0.0f;
+
         float[] offsets = line.offsets(font, scale);
-        for (int index = 0; index < offsets.length; index++) {
-            float lit = sweep.lit(index);
-            if (lit >= 1.0f) continue;
-            float right = index + 1 < offsets.length ? offsets[index + 1] : span / scale;
-            float edge = (offsets[index] + (right - offsets[index]) * lit) * scale;
-            return Anim.clamp(edge - slot * FOLLOW_SHARE, 0.0f, span - slot);
+        int index = Math.min(offsets.length - 1, (int) head);
+        float right = index + 1 < offsets.length ? offsets[index + 1] : span / scale;
+        float place = (offsets[index] + (right - offsets[index]) * (head - index)) * scale;
+        return Anim.clamp(place - slot * FOLLOW_SHARE, 0.0f, span - slot);
+    }
+
+    // WHY: непропетая буква приглушена, пропетая горит полным цветом, а та, что поётся сейчас, чуть
+    // WHY: приподнимается, отдаёт в цвет обложки и светится им же; всё это колокол по её доле
+    public static void sungGlyph(GuiGraphics graphics, Font font, Component glyph, Weight weight, float x, float y,
+                                 float scale, int color, float blur, Sweep sweep, int index) {
+        float lit = Anim.clamp01(sweep.lit(index));
+        float active = 4.0f * lit * (1.0f - lit);
+        int ink = Colors.alpha(color, UNSUNG + (1.0f - UNSUNG) * lit);
+        float rise = -LIFT_UNITS * active * scale;
+        if (active > 0.01f) {
+            int accent = sweep.accent(color);
+            ink = Colors.mix(ink, (ink & 0xFF000000) | (accent & 0x00FFFFFF), ACCENT_SHARE * active);
+            if (blur <= SHARP) ring(graphics, font, glyph, weight, x, y + rise, scale,
+                    Colors.alpha(accent, BLOOM_SHARE * active * ((color >>> 24) / 255.0f)), BLOOM_REACH * scale, BLOOM_TAPS);
         }
-        return span - slot;
-    }
-
-    // WHY: непропетая буква приглушена, пропетая горит полным цветом со свечением, а та, что поётся
-    // WHY: сейчас, чуть приподнимается и опускается на место: подъём это колокол по её доле
-    public static int sung(int color, float lit) {
-        return Colors.alpha(color, UNSUNG + (1.0f - UNSUNG) * Anim.clamp01(lit));
-    }
-
-    public static float lift(float lit) {
-        float share = Anim.clamp01(lit);
-        return -LIFT_UNITS * 4.0f * share * (1.0f - share);
+        glyph(graphics, font, glyph, weight, x, y + rise, scale, ink, blur);
     }
 
     // WHY: строка всегда ставится по буквам своей раскладкой, той же, что меряет ширину и морфит
     // WHY: буквы: раскладка игры расходилась с ней на пиксель-другой в пробелах, и на смене значения
-    // WHY: строка вздрагивала. Бегущая строка гасит буквы у края по их месту, полоса растёт с уехавшей частью
+    // WHY: строка вздрагивала. Бегущая строка гасит буквы у края по их месту, полоса растёт с уехавшей
+    // WHY: частью. Едущая за голосом строка не привязывает начало к пикселю: шаг в пиксель на медленном
+    // WHY: ходу и есть рывок
     private static void run(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
-                            int color, float blur, float shift, boolean overflow, Sweep sweep) {
+                            int color, float blur, float shift, boolean overflow, Sweep sweep, boolean gliding) {
         float margin = margin(slot, scale);
         float fade = Math.max(margin, Math.min(LINE_UNITS * scale * FADE_LINES, slot * FADE_BOX_SHARE));
-        Point start = origin(graphics, x - shift, y);
+        Point start = gliding ? new Point(x - shift, origin(graphics, x, y).y()) : origin(graphics, x - shift, y);
         float leftWidth = Math.min(fade, margin + shift * FADE_GROWTH);
         float hiddenRight = Math.max(0.0f, start.x() + line.width(font, scale) - x - slot);
         float rightWidth = Math.min(fade, margin + hiddenRight * FADE_GROWTH);
@@ -208,9 +224,8 @@ public final class Ink {
             float shown = overflow ? Math.min(Anim.clamp01((left - (x - margin)) / leftWidth),
                     Anim.clamp01((x + slot + margin - left) / rightWidth)) : 1.0f;
             if (shown <= 0.01f) continue;
-            float lit = sweep.lit(index);
-            glyph(graphics, font, glyphs[index], line.weight(), left, start.y() + lift(lit) * scale,
-                    scale, sung(Colors.alpha(color, shown), lit), blur);
+            sungGlyph(graphics, font, glyphs[index], line.weight(), left, start.y(), scale, Colors.alpha(color, shown),
+                    blur, sweep, index);
         }
     }
 
