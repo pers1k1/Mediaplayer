@@ -24,6 +24,7 @@ public final class IslandTitles {
     private String artistText = "";
     private String pairedArtist = "";
     private LyricLine sung;
+    private float widened;
     private long shownPlayed = -1L;
     private long shownWhole = -1L;
 
@@ -37,6 +38,7 @@ public final class IslandTitles {
         if (changed) retitle(track);
         long now = System.currentTimeMillis();
         sing(lyrics.line(track, now));
+        widened = lyrics.widen(delta);
         stamp(Math.max(0L, IslandClock.elapsedMs(track, now) / 1000L), Math.max(0L, track.durationMs() / 1000L));
         return announced;
     }
@@ -74,8 +76,9 @@ public final class IslandTitles {
     }
 
     float mainWidth(Font font, float scale) {
-        if (!lyrics.engaged()) return title.line().width(font, scale);
-        return Math.max(lyrics.widest(font, scale), titleLine.width(font, scale));
+        if (!lyrics.engaged() || widened <= 0.0f) return titleLine.width(font, scale);
+        float titleWidth = titleLine.width(font, scale);
+        return titleWidth + (Math.max(lyrics.widest(font, scale), titleWidth) - titleWidth) * widened;
     }
 
     // WHY: у трека без длины полосе нечего показывать, и строка таблетки отдаётся исполнителю
