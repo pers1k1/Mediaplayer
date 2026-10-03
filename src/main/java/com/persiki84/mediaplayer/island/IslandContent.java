@@ -83,7 +83,7 @@ final class IslandContent {
         float top = flight.y(pillTop, CARD_TITLE_TOP);
         float x = textX(flight);
         flight.scene().titles().title.draw(flight.scene().graphics(), flight.scene().font(), x, top, slot, scale,
-                ink(media), flight.blur());
+                ink(media), flight.blur(), flight.scene().titles().sweep());
     }
 
     private static void nick(IslandFlight flight, float slot, float top, float media) {

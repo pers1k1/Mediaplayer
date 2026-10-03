@@ -12,6 +12,7 @@ public enum IslandFlag {
     COVER_TINT("coverTint"),
     TITLE("title"),
     ARTIST("artist"),
+    LYRICS("lyrics"),
     TIME("time"),
     BAR("bar"),
     VISUALIZER("visualizer"),

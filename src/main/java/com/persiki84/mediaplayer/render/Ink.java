@@ -28,6 +28,9 @@ public final class Ink {
     private static final float MARGIN_LINES = 0.4f;
     private static final float MARGIN_BOX_SHARE = 0.08f;
     private static final float FADE_GROWTH = 3.0f;
+    private static final float FOLLOW_SHARE = 0.45f;
+    private static final float UNSUNG = 0.42f;
+    private static final float LIFT_UNITS = 0.55f;
 
     private static boolean snapping = true;
     private static float basePixels;
@@ -146,20 +149,52 @@ public final class Ink {
         return Typeface.fit(scale, base());
     }
 
-    public static void line(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
-                            int color, float blur) {
+    public static float line(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
+                             int color, float blur) {
+        return line(graphics, font, line, x, y, slot, scale, color, blur, Sweep.NONE);
+    }
+
+    public static float line(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
+                             int color, float blur, Sweep sweep) {
         float span = line.width(font, scale);
         boolean overflow = span > slot;
-        float shift = overflow && blur <= SHARP ? Marquee.shift(line.raw(), span - slot) : 0.0f;
+        float shift = !overflow || blur > SHARP ? 0.0f
+                : sweep == Sweep.NONE ? Marquee.shift(line.raw(), span - slot) : follow(font, line, scale, slot, span, sweep);
         clipped(graphics, x, y, slot, scale, () -> run(graphics, font, line, x, y, slot, scale, color, blur, shift,
-                overflow));
+                overflow, sweep));
+        return shift;
+    }
+
+    // WHY: строка лирики длиннее слота едет не по своим часам, а за волной подсветки: пропеваемая
+    // WHY: буква держится на FOLLOW_SHARE слота, иначе бегущая строка показывала бы не то место, что поют
+    private static float follow(Font font, Line line, float scale, float slot, float span, Sweep sweep) {
+        float[] offsets = line.offsets(font, scale);
+        for (int index = 0; index < offsets.length; index++) {
+            float lit = sweep.lit(index);
+            if (lit >= 1.0f) continue;
+            float right = index + 1 < offsets.length ? offsets[index + 1] : span / scale;
+            float edge = (offsets[index] + (right - offsets[index]) * lit) * scale;
+            return Anim.clamp(edge - slot * FOLLOW_SHARE, 0.0f, span - slot);
+        }
+        return span - slot;
+    }
+
+    // WHY: непропетая буква приглушена, пропетая горит полным цветом со свечением, а та, что поётся
+    // WHY: сейчас, чуть приподнимается и опускается на место: подъём это колокол по её доле
+    public static int sung(int color, float lit) {
+        return Colors.alpha(color, UNSUNG + (1.0f - UNSUNG) * Anim.clamp01(lit));
+    }
+
+    public static float lift(float lit) {
+        float share = Anim.clamp01(lit);
+        return -LIFT_UNITS * 4.0f * share * (1.0f - share);
     }
 
     // WHY: строка всегда ставится по буквам своей раскладкой, той же, что меряет ширину и морфит
     // WHY: буквы: раскладка игры расходилась с ней на пиксель-другой в пробелах, и на смене значения
     // WHY: строка вздрагивала. Бегущая строка гасит буквы у края по их месту, полоса растёт с уехавшей частью
     private static void run(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
-                            int color, float blur, float shift, boolean overflow) {
+                            int color, float blur, float shift, boolean overflow, Sweep sweep) {
         float margin = margin(slot, scale);
         float fade = Math.max(margin, Math.min(LINE_UNITS * scale * FADE_LINES, slot * FADE_BOX_SHARE));
         Point start = origin(graphics, x - shift, y);
@@ -173,8 +208,9 @@ public final class Ink {
             float shown = overflow ? Math.min(Anim.clamp01((left - (x - margin)) / leftWidth),
                     Anim.clamp01((x + slot + margin - left) / rightWidth)) : 1.0f;
             if (shown <= 0.01f) continue;
-            glyph(graphics, font, glyphs[index], line.weight(), left, start.y(), scale, Colors.alpha(color, shown),
-                    blur);
+            float lit = sweep.lit(index);
+            glyph(graphics, font, glyphs[index], line.weight(), left, start.y() + lift(lit) * scale,
+                    scale, sung(Colors.alpha(color, shown), lit), blur);
         }
     }
 

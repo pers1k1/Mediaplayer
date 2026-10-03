@@ -7,7 +7,8 @@ public enum IslandDial {
     VISUALIZER_ATTACK("visualizerAttack", 1.0f, 0.25f, 2.0f),
     VISUALIZER_LIGHT("visualizerLight", 1.0f, 0.25f, 2.0f),
     VISUALIZER_COLOR("visualizerColor", 1.0f, 0.25f, 2.0f),
-    FLIP_SPEED("flipSpeed", 1.0f, 0.25f, 2.0f);
+    FLIP_SPEED("flipSpeed", 1.0f, 0.25f, 2.0f),
+    LYRICS_OFFSET("lyricsOffset", 0.0f, -3.0f, 3.0f);
 
     private final String key;
     private final float fallback;

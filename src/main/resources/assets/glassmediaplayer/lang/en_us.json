@@ -35,6 +35,8 @@
   "glassmediaplayer.settings.flag.title.hint": "Name of the playing track",
   "glassmediaplayer.settings.flag.artist": "Artist",
   "glassmediaplayer.settings.flag.artist.hint": "Artist line in the card",
+  "glassmediaplayer.settings.flag.lyrics": "Lyrics",
+  "glassmediaplayer.settings.flag.lyrics.hint": "Synced lyrics in place of the title, lit letter by letter. Looked up on lrclib.net: the title and artist of the track are sent there",
   "glassmediaplayer.settings.flag.time": "Timer",
   "glassmediaplayer.settings.flag.time.hint": "Elapsed and total time of the track",
   "glassmediaplayer.settings.flag.bar": "Progress bar",
@@ -57,5 +59,7 @@
   "glassmediaplayer.settings.dial.visualizerColor": "Cover saturation",
   "glassmediaplayer.settings.dial.visualizerColor.hint": "Saturation of colors taken from the cover, 1 is normal, from %s to %s",
   "glassmediaplayer.settings.dial.flipSpeed": "Cover flip speed",
-  "glassmediaplayer.settings.dial.flipSpeed.hint": "How fast the cover turns over on a track change, 1 is normal, from %s to %s"
+  "glassmediaplayer.settings.dial.flipSpeed.hint": "How fast the cover turns over on a track change, 1 is normal, from %s to %s",
+  "glassmediaplayer.settings.dial.lyricsOffset": "Lyrics offset, s",
+  "glassmediaplayer.settings.dial.lyricsOffset.hint": "Move the lyrics later (plus) or earlier (minus) if they run off the singing, from %s to %s seconds"
 }

@@ -35,6 +35,8 @@
   "glassmediaplayer.settings.flag.title.hint": "Название играющего трека",
   "glassmediaplayer.settings.flag.artist": "Исполнитель",
   "glassmediaplayer.settings.flag.artist.hint": "Строка исполнителя в карточке",
+  "glassmediaplayer.settings.flag.lyrics": "Лирика",
+  "glassmediaplayer.settings.flag.lyrics.hint": "Текст песни на месте названия, подсветка по буквам. Ищется на lrclib.net: туда уходят название и исполнитель трека",
   "glassmediaplayer.settings.flag.time": "Таймер",
   "glassmediaplayer.settings.flag.time.hint": "Сколько прошло и сколько длится трек",
   "glassmediaplayer.settings.flag.bar": "Полоса прогресса",
@@ -57,5 +59,7 @@
   "glassmediaplayer.settings.dial.visualizerColor": "Насыщенность обложки",
   "glassmediaplayer.settings.dial.visualizerColor.hint": "Насыщенность цветов, снятых с обложки, 1 это обычная, от %s до %s",
   "glassmediaplayer.settings.dial.flipSpeed": "Разворот обложки",
-  "glassmediaplayer.settings.dial.flipSpeed.hint": "Как быстро обложка разворачивается при смене трека, 1 это обычная, от %s до %s"
+  "glassmediaplayer.settings.dial.flipSpeed.hint": "Как быстро обложка разворачивается при смене трека, 1 это обычная, от %s до %s",
+  "glassmediaplayer.settings.dial.lyricsOffset": "Сдвиг лирики, сек",
+  "glassmediaplayer.settings.dial.lyricsOffset.hint": "Сдвинуть текст позже (плюс) или раньше (минус), если он расходится с голосом, от %s до %s секунд"
 }

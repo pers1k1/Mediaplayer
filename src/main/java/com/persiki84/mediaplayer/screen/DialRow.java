@@ -53,7 +53,8 @@ final class DialRow {
     }
 
     private static boolean typeable(String text) {
-        return text.chars().allMatch(symbol -> Character.isDigit(symbol) || symbol == '.' || symbol == ',');
+        String digits = text.startsWith("-") ? text.substring(1) : text;
+        return digits.chars().allMatch(symbol -> Character.isDigit(symbol) || symbol == '.' || symbol == ',');
     }
 
     private void accept(String text) {

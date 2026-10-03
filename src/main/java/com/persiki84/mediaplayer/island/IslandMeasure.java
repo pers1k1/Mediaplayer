@@ -58,7 +58,7 @@ public final class IslandMeasure {
         cardWaveSlot = visualized ? IslandGlyph.CARD_WIDTH + WAVE_GAP : 0.0f;
         timingPeak = held(timingPeak, titles.pillRow.line().width(font, Ink.fit(TIME_SCALE)));
         pillWidth = Anim.lerp(idleWidth(font), mediaWidth(font, titles), media);
-        float cardText = Math.max(titles.title.line().width(font, Ink.fit(TITLE_CARD_SCALE)),
+        float cardText = Math.max(titles.mainWidth(font, Ink.fit(TITLE_CARD_SCALE)),
                 titles.artist.line().width(font, Ink.fit(ARTIST_SCALE)));
         cardWidth = PAD + ART + GAP + Anim.clamp(cardText, CARD_TEXT_MIN, CARD_TEXT_MAX) + cardWaveSlot + PAD;
     }
@@ -70,10 +70,11 @@ public final class IslandMeasure {
     }
 
     private float mediaWidth(Font font, IslandTitles titles) {
-        float titleWidth = titles.title.line().width(font, Ink.fit(TITLE_PILL_SCALE));
+        float titleWidth = titles.mainWidth(font, Ink.fit(TITLE_PILL_SCALE));
         float title = PAD + face + GAP + Anim.clamp(titleWidth, TITLE_MIN, TITLE_MAX)
                 + waveSlot + PAD;
-        float timed = PAD + face + GAP + timingPeak + (titles.untimed() ? 0.0f : PILL_TIME_GAP + PILL_BAR_MIN) + PAD;
+        float timed = PAD + face + GAP + Math.min(timingPeak, TITLE_MAX)
+                + (titles.untimed() ? 0.0f : PILL_TIME_GAP + PILL_BAR_MIN) + PAD;
         return Math.max(title, timed * (1.0f - blind));
     }
 
