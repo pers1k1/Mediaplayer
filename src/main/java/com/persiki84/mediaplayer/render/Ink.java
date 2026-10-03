@@ -35,6 +35,10 @@ public final class Ink {
     private static final float BLOOM_SHARE = 0.07f;
     private static final float BLOOM_REACH = 1.1f;
     private static final int BLOOM_TAPS = 8;
+    private static final float HELD_LIFT_UNITS = 0.45f;
+    private static final float HELD_GROW = 0.1f;
+    private static final float HELD_BLOOM = 0.16f;
+    private static final float HELD_WEIGHT_UNITS = 0.35f;
 
     private static boolean snapping = true;
     private static float basePixels;
@@ -193,6 +197,11 @@ public final class Ink {
                                  float scale, int color, float blur, Sweep sweep, int index) {
         float lit = Anim.clamp01(sweep.lit(index));
         float active = 4.0f * lit * (1.0f - lit);
+        float held = Anim.clamp01(sweep.held(index));
+        if (held > 0.01f) {
+            heldGlyph(graphics, font, glyph, weight, x, y, scale, color, blur, sweep, lit, held);
+            return;
+        }
         int ink = Colors.alpha(color, UNSUNG + (1.0f - UNSUNG) * lit);
         float rise = -LIFT_UNITS * active * scale;
         if (active > 0.01f) {
@@ -204,6 +213,25 @@ public final class Ink {
         glyph(graphics, font, glyph, weight, x, y + rise, scale, ink, blur);
     }
 
+    // WHY: буква затянутого слова держит акцент, пока слово тянется: подрастает вокруг своей середины,
+    // WHY: стоит выше, светится цветом обложки и густеет второй копией со сдвигом в долю пикселя, как
+    // WHY: жирное начертание. Всё идёт по held, поэтому акцент разгорается и гаснет плавно
+    private static void heldGlyph(GuiGraphics graphics, Font font, Component glyph, Weight weight, float x, float y,
+                                  float scale, int color, float blur, Sweep sweep, float lit, float held) {
+        float active = Math.max(4.0f * lit * (1.0f - lit), held);
+        float size = scale * (1.0f + HELD_GROW * held);
+        float left = x - (size - scale) * width(font, glyph, weight, 1.0f) / 2.0f;
+        float top = y - (LIFT_UNITS * 4.0f * lit * (1.0f - lit) + HELD_LIFT_UNITS * held) * scale
+                - (size - scale) * GLYPH_HEIGHT / 2.0f;
+        int accent = sweep.accent(color);
+        int base = Colors.alpha(color, UNSUNG + (1.0f - UNSUNG) * lit);
+        int ink = Colors.mix(base, (base & 0xFF000000) | (accent & 0x00FFFFFF), ACCENT_SHARE * active);
+        if (blur <= SHARP) ring(graphics, font, glyph, weight, left, top, size,
+                Colors.alpha(accent, (BLOOM_SHARE + HELD_BLOOM * held) * ((color >>> 24) / 255.0f)), BLOOM_REACH * size, BLOOM_TAPS);
+        glyph(graphics, font, glyph, weight, left, top, size, ink, blur);
+        glyph(graphics, font, glyph, weight, left + HELD_WEIGHT_UNITS * held * size, top, size, ink, blur);
+    }
+
     // WHY: строка всегда ставится по буквам своей раскладкой, той же, что меряет ширину и морфит
     // WHY: буквы: раскладка игры расходилась с ней на пиксель-другой в пробелах, и на смене значения
     // WHY: строка вздрагивала. Бегущая строка гасит буквы у края по их месту, полоса растёт с уехавшей
@@ -211,30 +239,29 @@ public final class Ink {
     // WHY: ходу и есть рывок
     private static void run(GuiGraphics graphics, Font font, Line line, float x, float y, float slot, float scale,
                             int color, float blur, float shift, boolean overflow, Sweep sweep, boolean gliding) {
-        float margin = margin(slot, scale);
-        float fade = Math.max(margin, Math.min(LINE_UNITS * scale * FADE_LINES, slot * FADE_BOX_SHARE));
         Point start = gliding ? new Point(x - shift, origin(graphics, x, y).y()) : origin(graphics, x - shift, y);
-        float leftWidth = Math.min(fade, margin + shift * FADE_GROWTH);
-        float hiddenRight = Math.max(0.0f, start.x() + line.width(font, scale) - x - slot);
-        float rightWidth = Math.min(fade, margin + hiddenRight * FADE_GROWTH);
+        float span = line.width(font, scale);
         Component[] glyphs = line.glyphs();
         float[] offsets = line.offsets(font, scale);
         for (int index = 0; index < glyphs.length; index++) {
             float left = start.x() + offsets[index] * scale;
-            float shown = overflow ? Math.min(Anim.clamp01((left - (x - margin)) / leftWidth),
-                    Anim.clamp01((x + slot + margin - left) / rightWidth)) : 1.0f;
+            float shown = overflow ? edge(left, x, slot, scale, x - start.x(), span) : 1.0f;
             if (shown <= 0.01f) continue;
             sungGlyph(graphics, font, glyphs[index], line.weight(), left, start.y(), scale, Colors.alpha(color, shown),
                     blur, sweep, index);
         }
     }
 
-    // WHY: та же гаснущая кромка, что у бегущей строки, для строки посреди смены: уехавшие за край
-    // WHY: буквы прокрученной строки иначе проступали на время морфа
-    public static float edge(float left, float x, float slot, float scale) {
+    // WHY: кромка гасит букву по её месту, а полоса с каждой стороны растёт с уехавшей за неё частью
+    // WHY: строки: у конца прокрутки правая полоса сходится к запасу за краем, и последняя буква горит
+    // WHY: целиком. На смене строки каждая строка гаснет по своей прокрутке: общая полоса полной ширины
+    // WHY: гасила конец уходящей и начало приходящей, и они горели только до и после смены
+    public static float edge(float left, float x, float slot, float scale, float shift, float span) {
         float margin = margin(slot, scale);
         float fade = Math.max(margin, Math.min(LINE_UNITS * scale * FADE_LINES, slot * FADE_BOX_SHARE));
-        return Math.min(Anim.clamp01((left - (x - margin)) / fade), Anim.clamp01((x + slot + margin - left) / fade));
+        float leftWidth = Math.min(fade, margin + Math.max(0.0f, shift) * FADE_GROWTH);
+        float rightWidth = Math.min(fade, margin + Math.max(0.0f, span - shift - slot) * FADE_GROWTH);
+        return Math.min(Anim.clamp01((left - (x - margin)) / leftWidth), Anim.clamp01((x + slot + margin - left) / rightWidth));
     }
 
     private static float margin(float slot, float scale) {

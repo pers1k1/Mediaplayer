@@ -16,6 +16,8 @@ public final class MorphText {
     private static final float STAGGER_LIMIT = 0.3f;
     private static final float TRAVEL_UNITS = 2.0f;
     private static final float FOLLOW_RATE = 7.0f;
+    private static final float LEAVE_SHARE = 0.45f;
+    private static final float HANDOFF_SHARE = 0.2f;
 
     private final Line current;
     private final Line previous;
@@ -140,9 +142,9 @@ public final class MorphText {
     // WHY: уходящая строка уезжает с того места, где стояла: прокрученная бегущей строкой длинная
     // WHY: строка иначе в первый кадр смены отскакивала к своему началу
     private record Lane(Line line, Font font, Component[] glyphs, float[] offsets, float x, float slot, float scale,
-                        float scroll, boolean overflow) {
+                        float scroll, float span, boolean overflow) {
         Lane(Line line, Font font, float scale, float x, float slot, float scroll) {
-            this(line, font, line.glyphs(), line.offsets(font, scale), x, slot, scale, scroll,
+            this(line, font, line.glyphs(), line.offsets(font, scale), x, slot, scale, scroll, line.width(font, scale),
                     scroll > 0.0f || line.width(font, scale) > slot + 0.5f);
         }
 
@@ -151,7 +153,7 @@ public final class MorphText {
         }
 
         float edge(float left) {
-            return overflow ? Ink.edge(left, x, slot, scale) : 1.0f;
+            return overflow ? Ink.edge(left, x, slot, scale, scroll * scale, span) : 1.0f;
         }
 
         float left(int index) {
@@ -190,14 +192,24 @@ public final class MorphText {
             float left = x + lane.left(index) * scale;
             float edge = lane.edge(left);
             if (holds(lane, index, other) || lane.outside(left) || edge <= 0.01f) continue;
-            float wave = Math.min(STAGGER_LIMIT, Math.min(index - prefix, changedSpan() - 1) * STAGGER_SECONDS);
-            float share = Anim.smoothstep(0.0f, 1.0f, (clock - wave) / GLYPH_SECONDS);
+            float share = share(index, direction);
             float shown = direction > 0.0f ? share : 1.0f - share;
             float lift = direction > 0.0f ? 1.0f - share : -share;
             Ink.sungGlyph(graphics, lane.font(), lane.glyphs()[index], lane.line().weight(), left,
                     y + lift * TRAVEL_UNITS * scale, scale, Colors.alpha(color, shown * edge), Math.max(blur, 1.0f - shown),
                     sweep, index);
         }
+    }
+
+    // WHY: строка лирики сменяется передачей, а не наложением: уходящая целиком поднимается и гаснет за
+    // WHY: первые LEAVE_SHARE смены, приходящая волна начинается с HANDOFF_SHARE и укладывается в тот же
+    // WHY: срок. Иначе две разные строки на смене стояли друг на друге в одних и тех же местах
+    private float share(int index, float direction) {
+        if (whole && direction < 0.0f) return Anim.smoothstep(0.0f, duration() * LEAVE_SHARE, clock);
+
+        float local = whole ? (clock - duration() * HANDOFF_SHARE) / (1.0f - HANDOFF_SHARE) : clock;
+        float wave = Math.min(STAGGER_LIMIT, Math.min(index - prefix, changedSpan() - 1) * STAGGER_SECONDS);
+        return Anim.smoothstep(0.0f, 1.0f, (local - wave) / GLYPH_SECONDS);
     }
 
     private boolean holds(Lane lane, int index, Lane other) {
