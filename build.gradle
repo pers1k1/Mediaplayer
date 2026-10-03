@@ -54,6 +54,11 @@ jar {
     }
 }
 
+def textOrEmpty = { String path ->
+    File source = file(path)
+    return source.isFile() ? source.getText('UTF-8') : ''
+}
+
 modrinth {
     token = System.getenv('MODRINTH_TOKEN')
     projectId = 'glass-mediaplayer-island'
@@ -62,8 +67,8 @@ modrinth {
     uploadFile = remapJar
     gameVersions = [project.minecraft_version]
     loaders = ['fabric']
-    changelog = rootProject.file("changelog/${project.mod_version}.md").text
-    syncBodyFrom = rootProject.file('MODRINTH.md').text
+    changelog = textOrEmpty("changelog/${project.mod_version}.md")
+    syncBodyFrom = textOrEmpty('MODRINTH.md')
     dependencies {
         required.project 'fabric-api'
         optional.project 'modmenu'
