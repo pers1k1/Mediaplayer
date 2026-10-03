@@ -1,0 +1,14 @@
+{
+  "providers": [
+    {
+      "type": "ttf",
+      "file": "glassmediaplayer:inter_semibold.ttf",
+      "shift": [
+        0,
+        0
+      ],
+      "size": 8.5,
+      "oversample": 1.0
+    }
+  ]
+}

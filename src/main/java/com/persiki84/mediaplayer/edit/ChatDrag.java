@@ -28,7 +28,7 @@ public final class ChatDrag {
     private static final float OUTLINE = 1.0f;
     private static final float HINT_SCALE = 0.7f;
     private static final float HINT_GAP = 4.0f;
-    private static final Component HINT = Component.translatable("mediaplayer.drag.hint");
+    private static final Component HINT = Component.translatable("glassmediaplayer.drag.hint");
 
     private static final Smooth hover = new Smooth(0.0f, HOVER_SPEED);
     private static boolean dragging;

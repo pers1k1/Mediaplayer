@@ -28,7 +28,7 @@ public enum IslandFlag {
     }
 
     public String translationKey() {
-        return "mediaplayer.settings.flag." + key;
+        return "glassmediaplayer.settings.flag." + key;
     }
 
     public String hintKey() {

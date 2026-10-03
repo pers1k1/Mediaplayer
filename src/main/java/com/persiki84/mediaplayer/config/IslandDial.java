@@ -42,7 +42,7 @@ public enum IslandDial {
     }
 
     public String translationKey() {
-        return "mediaplayer.settings.dial." + key;
+        return "glassmediaplayer.settings.dial." + key;
     }
 
     public String hintKey() {

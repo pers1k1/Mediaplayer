@@ -26,7 +26,7 @@ public final class MediaKeys {
     }
 
     private static KeyMapping bind(String name, int key) {
-        return KeyBindingHelper.registerKeyBinding(new KeyMapping("key.mediaplayer." + name, InputConstants.Type.KEYSYM,
+        return KeyBindingHelper.registerKeyBinding(new KeyMapping("key.glassmediaplayer." + name, InputConstants.Type.KEYSYM,
                 key, CATEGORY));
     }
 

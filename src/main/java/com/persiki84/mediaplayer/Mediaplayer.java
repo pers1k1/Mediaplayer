@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class Mediaplayer {
-    public static final String MOD_ID = "mediaplayer";
+    public static final String MOD_ID = "glassmediaplayer";
     public static final Logger LOGGER = LoggerFactory.getLogger("Mediaplayer");
 
     private Mediaplayer() {}

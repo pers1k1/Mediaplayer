@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "mediaplayer",
+  "id": "glassmediaplayer",
   "version": "${version}",
-  "name": "Mediaplayer",
+  "name": "Glass MediaPlayer Island",
   "description": "Glass media island for the HUD: the track playing in Windows, cover art and a live sound visualizer.",
   "authors": ["pers1k1"],
   "contact": {
@@ -10,13 +10,13 @@
     "issues": "https://github.com/pers1k1/Mediaplayer/issues"
   },
   "license": "AGPL-3.0-or-later",
-  "icon": "assets/mediaplayer/icon.png",
+  "icon": "assets/glassmediaplayer/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": ["com.persiki84.mediaplayer.MediaplayerClient"],
     "modmenu": ["com.persiki84.mediaplayer.compat.ModMenuEntry"]
   },
-  "mixins": ["mediaplayer.mixins.json"],
+  "mixins": ["glassmediaplayer.mixins.json"],
   "depends": {
     "fabricloader": ">=0.19.5",
     "minecraft": "~1.21.11",

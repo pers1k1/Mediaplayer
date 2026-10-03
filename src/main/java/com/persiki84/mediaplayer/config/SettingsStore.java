@@ -18,6 +18,7 @@ import java.nio.file.StandardCopyOption;
 public final class SettingsStore {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final long SAVE_DELAY_MS = 600L;
+    private static final String LEGACY_FILE_NAME = "mediaplayer.json";
 
     private static boolean dirty;
     private static long changedAt;
@@ -26,6 +27,12 @@ public final class SettingsStore {
 
     private static Path file() {
         return FabricLoader.getInstance().getConfigDir().resolve(Mediaplayer.MOD_ID + ".json");
+    }
+
+    private static Path readableFile() {
+        Path current = file();
+        if (Files.isRegularFile(current)) return current;
+        return FabricLoader.getInstance().getConfigDir().resolve(LEGACY_FILE_NAME);
     }
 
     static void changed() {
@@ -46,7 +53,7 @@ public final class SettingsStore {
 
     public static void load() {
         IslandSettings.reset();
-        Path path = file();
+        Path path = readableFile();
         if (!Files.isRegularFile(path)) return;
 
         try {

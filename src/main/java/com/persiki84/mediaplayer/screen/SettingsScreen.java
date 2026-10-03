@@ -48,7 +48,7 @@ public final class SettingsScreen extends Screen {
     private int row;
 
     public SettingsScreen(@Nullable Screen parent) {
-        super(Component.translatable("mediaplayer.settings.title"));
+        super(Component.translatable("glassmediaplayer.settings.title"));
         this.parent = parent;
     }
 
@@ -89,7 +89,7 @@ public final class SettingsScreen extends Screen {
         int y = panelY + panelHeight - PAD - BUTTON_HEIGHT;
         int center = panelX + panelWidth / 2;
         addRenderableWidget(new GlassButton(center - BUTTON_WIDTH - 4, y, BUTTON_WIDTH, BUTTON_HEIGHT,
-                Component.translatable("mediaplayer.settings.reset_place"),
+                Component.translatable("glassmediaplayer.settings.reset_place"),
                 () -> IslandSettings.place(IslandPlacement.DEFAULT)));
         addRenderableWidget(new GlassButton(center + 4, y, BUTTON_WIDTH, BUTTON_HEIGHT, CommonComponents.GUI_DONE,
                 this::onClose));
@@ -118,14 +118,14 @@ public final class SettingsScreen extends Screen {
         Ink.label(graphics, font, title, Weight.SEMIBOLD, panelX + (panelWidth - titleWidth) / 2.0f, panelY + 9,
                 Ink.fit(TITLE_SCALE),
                 Palette.INK, 0.0f);
-        section(graphics, "mediaplayer.settings.section.show", panelX + PAD);
-        section(graphics, "mediaplayer.settings.section.tune", panelX + PAD + COLUMN + GUTTER);
-        Component credit = Component.translatable("mediaplayer.settings.credit");
+        section(graphics, "glassmediaplayer.settings.section.show", panelX + PAD);
+        section(graphics, "glassmediaplayer.settings.section.tune", panelX + PAD + COLUMN + GUTTER);
+        Component credit = Component.translatable("glassmediaplayer.settings.credit");
         float creditWidth = Ink.width(font, credit, Weight.REGULAR, Ink.fit(NOTE_SCALE));
         Ink.label(graphics, font, credit, Weight.REGULAR, panelX + (panelWidth - creditWidth) / 2.0f,
                 panelY + panelHeight - PAD - BUTTON_HEIGHT - 9, Ink.fit(NOTE_SCALE),
                 Colors.alpha(Palette.INK_DIM, 0.6f), 0.0f);
-        Component note = Component.translatable("mediaplayer.settings.drag_note");
+        Component note = Component.translatable("glassmediaplayer.settings.drag_note");
         Ink.label(graphics, font, note, Weight.REGULAR, panelX + PAD + COLUMN + GUTTER,
                 panelY + HEADER + IslandDial.values().length * (row + 2) + 6, Ink.fit(NOTE_SCALE),
                 Colors.alpha(Palette.INK_DIM, 0.8f), 0.0f);

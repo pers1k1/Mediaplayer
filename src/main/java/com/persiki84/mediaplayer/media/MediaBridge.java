@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class MediaBridge {
     private static final String RESOURCES = "/assets/mediaplayer/bridge/";
-    private static final String FOLDER = "mediaplayer";
+    private static final String FOLDER = "glassmediaplayer";
     private static final String SCRIPT = "media-watch.ps1";
     private static final String NATIVE = "media-native.cs";
     private static final String ART = "media-art.png";
@@ -165,7 +165,7 @@ public final class MediaBridge {
     }
 
     private static void listen(Process owner, InputStream stream, LineReader sink, boolean primary) {
-        Thread worker = new Thread(() -> pump(owner, stream, sink, primary), "mediaplayer-media");
+        Thread worker = new Thread(() -> pump(owner, stream, sink, primary), "glassmediaplayer-media");
         worker.setDaemon(true);
         worker.start();
     }
@@ -188,7 +188,7 @@ public final class MediaBridge {
     // WHY: запись в трубу блокирует, пока мост её не вычитал, а команды жмут на игровом потоке: при
     // WHY: зависшем мосте кнопка плеера и выход из игры вставали бы на записи. Строки пишет свой поток
     private static void speak(Process owner, BlockingQueue<String> queue) {
-        Thread worker = new Thread(() -> relay(owner, queue), "mediaplayer-media-remote");
+        Thread worker = new Thread(() -> relay(owner, queue), "glassmediaplayer-media-remote");
         worker.setDaemon(true);
         worker.start();
     }
