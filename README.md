@@ -81,6 +81,8 @@ JAVA_HOME="C:\Program Files\Java\jdk-25.0.2" ./gradlew build
 
 Gradle 9.7.0 и Loom 1.18.2 запускаются на JDK 25, байткод мода собирается под Java 21. Готовый jar лежит в `build/libs/glassmediaplayer-<версия>.jar`.
 
+Иконка 512x512 рисуется скриптом `tools/build-icon.py` (Python с `numpy` и `Pillow`): капсула, плитка с плеем и полоски задаются полями расстояний со сглаживанием 4x4 и пишутся в `assets/glassmediaplayer/icon.png`. Правится скрипт, а не картинка.
+
 ## License and attribution
 
 Released under the [GNU Affero General Public License v3.0](LICENSE) with the
