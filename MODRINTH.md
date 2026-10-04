@@ -13,6 +13,7 @@ Client-only. Not needed on the server.
 - **Glass.** Refraction along the rim, dispersion and rim light over the real game frame. The glass stays sharp while the island moves; only its contents blur.
 - **Type.** Inter, smooth at any size, with a light glow instead of a dark outline. Switches to the vanilla font in settings.
 - **Synced lyrics.** The line being sung takes the place of the title and lights up letter by letter with the voice, word by word where the lyrics carry word timings. Lines change with the same letter morph, paced by the song: short in fast verses, slow in ballads. The title moves next to the artist in the card, and comes back during the intro and long breaks. An offset setting fixes lyrics that run ahead of or behind the singing. Lyrics are on by default and can be switched off in settings.
+- **Spotify bridge.** Listening in the Spotify desktop app with [Spicetify](https://spicetify.app)? The optional Glass Lyrics Bridge extension (from the [GitHub repository](https://github.com/pers1k1/Mediaplayer/tree/main/spicetify) or the release files) hands the island the lyrics Spotify itself shows, and the word-timed lyrics of Spicy Lyrics when that extension is installed. No token or cookie ever reaches the mod.
 
 ## Controls
 
@@ -44,6 +45,7 @@ The only network requests the mod makes are the lyrics lookup, and only while th
 - It sends the title and the artist of the playing track. Nothing about you, your game or your computer.
 - One request per track, only after the track has played for a moment, no more than once every 3 seconds and 10 times a minute. Found and missing lyrics are cached in `.minecraft/glassmediaplayer/lyrics`, so a song is looked up once.
 - Switch Lyrics off in settings (`K`) and the mod makes no network requests at all.
+- The Spotify bridge listens on `127.0.0.1:47823` only, never on the network, and accepts lyrics only from the Spotify app (origin `https://*.spotify.com`). It makes no requests of its own. Turn off **Spotify bridge** in settings to close the port.
 
 ## License and credits
 
@@ -63,6 +65,7 @@ The liquid glass look follows ReGlass by RedxAx. The Inter typeface is under the
 - Название, исполнитель и таймер меняются по буквам волной.
 - FPS и пинг в острове или в своей капсуле под ним, капсулу можно скрыть на время музыки.
 - Лирика: поющаяся строка стоит на месте названия и подсвечивается по буквам под голос, смена строк идёт в темпе песни.
+- Мост Spotify: расширение Glass Lyrics Bridge для Spicetify отдаёт острову текст из десктопного Spotify и пословный текст Spicy Lyrics, токены в мод не попадают.
 - `K` открывает настройки. Двигать остров: открыть чат и тянуть мышью, колесо меняет размер, правая кнопка возвращает на место.
 
-Требуется Minecraft 1.21.11, Fabric Loader 0.19.5+, Fabric API, для музыки Windows 10 или 11. Мост к плееру: PowerShell запускает скрипт из jar, тот собирает штатным компилятором Windows библиотеку на C# из исходника в том же jar; мост в сеть не ходит. Единственные сетевые запросы это поиск лирики на lrclib.net и в NetEase Cloud Music по HTTPS: туда уходят название и исполнитель трека. Выключите «Лирику» в настройках, и мод не обращается к сети вовсе.
+Требуется Minecraft 1.21.11, Fabric Loader 0.19.5+, Fabric API, для музыки Windows 10 или 11. Мост к плееру: PowerShell запускает скрипт из jar, тот собирает штатным компилятором Windows библиотеку на C# из исходника в том же jar; мост в сеть не ходит. Единственные сетевые запросы это поиск лирики на lrclib.net и в NetEase Cloud Music по HTTPS: туда уходят название и исполнитель трека. Выключите «Лирику» в настройках, и мод не обращается к сети вовсе. Мост Spotify слушает только `127.0.0.1:47823` и сам запросов не шлёт.
