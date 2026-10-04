@@ -37,6 +37,8 @@
   "glassmediaplayer.settings.flag.artist.hint": "Строка исполнителя в карточке",
   "glassmediaplayer.settings.flag.lyrics": "Лирика",
   "glassmediaplayer.settings.flag.lyrics.hint": "Текст песни на месте названия, подсветка по буквам. Ищется на lrclib.net и в NetEase Cloud Music (music.163.com): туда уходят название и исполнитель трека",
+  "glassmediaplayer.settings.flag.spotifyBridge": "Мост Spotify",
+  "glassmediaplayer.settings.flag.spotifyBridge.hint": "Тексты из Spotify и Spicy Lyrics через расширение Glass Lyrics Bridge для Spicetify. Игра слушает только 127.0.0.1, порт 47823",
   "glassmediaplayer.settings.flag.time": "Таймер",
   "glassmediaplayer.settings.flag.time.hint": "Сколько прошло и сколько длится трек",
   "glassmediaplayer.settings.flag.bar": "Полоса прогресса",

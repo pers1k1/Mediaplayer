@@ -6,6 +6,7 @@ import com.persiki84.mediaplayer.config.SettingsStore;
 import com.persiki84.mediaplayer.edit.ChatDrag;
 import com.persiki84.mediaplayer.island.IslandHud;
 import com.persiki84.mediaplayer.island.IslandModel;
+import com.persiki84.mediaplayer.lyrics.SpotifyBridge;
 import com.persiki84.mediaplayer.media.MediaBridge;
 import com.persiki84.mediaplayer.media.MediaWatch;
 import com.persiki84.mediaplayer.render.GlassBackdrop;
@@ -38,6 +39,7 @@ public final class MediaplayerClient implements ClientModInitializer {
         inWorld = playing;
         MediaWatch.want(playing && IslandSettings.on(IslandFlag.MEDIA));
         MediaWatch.tick();
+        SpotifyBridge.want(IslandSettings.on(IslandFlag.LYRICS) && IslandSettings.on(IslandFlag.SPOTIFY_BRIDGE));
         if (playing) IslandModel.pollStats();
         MediaKeys.tick(minecraft);
         SettingsStore.tick();
@@ -46,6 +48,7 @@ public final class MediaplayerClient implements ClientModInitializer {
     private static void stop(Minecraft minecraft) {
         SettingsStore.flush();
         MediaBridge.stop();
+        SpotifyBridge.stop();
         GlassBackdrop.release();
     }
 }

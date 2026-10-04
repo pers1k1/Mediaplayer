@@ -13,6 +13,7 @@ public enum IslandFlag {
     TITLE("title"),
     ARTIST("artist"),
     LYRICS("lyrics"),
+    SPOTIFY_BRIDGE("spotifyBridge"),
     TIME("time"),
     BAR("bar"),
     VISUALIZER("visualizer"),
