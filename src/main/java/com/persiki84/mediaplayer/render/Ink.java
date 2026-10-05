@@ -194,13 +194,13 @@ public final class Ink {
         return Anim.clamp(place - slot * FOLLOW_SHARE, 0.0f, span - slot);
     }
 
-    // WHY: непропетая буква приглушена, пропетая горит полным цветом, а та, что поётся сейчас, отдаёт
-    // WHY: в цвет обложки и светится им же колоколом по своей доле. Подъём и лёгкий рост идут
+    // WHY: непропетая буква приглушена, пропетая горит полным цветом, а слог, что поётся сейчас, отдаёт
+    // WHY: в цвет обложки и светится им же, пока поётся, и тает после. Подъём и лёгкий рост идут
     // WHY: движением её слога: слог поднимается целиком, держится, пока поётся, и оседает
     public static void sungGlyph(GuiGraphics graphics, Font font, Component glyph, Weight weight, float x, float y,
                                  float scale, int color, float blur, Sweep sweep, int index) {
         float lit = Anim.clamp01(sweep.lit(index));
-        float active = 4.0f * lit * (1.0f - lit);
+        float active = Anim.clamp01(sweep.glow(index));
         float held = Anim.clamp01(sweep.held(index));
         if (held > 0.01f) {
             heldGlyph(graphics, font, glyph, weight, x, y, scale, color, blur, sweep, index, held);
@@ -233,7 +233,7 @@ public final class Ink {
                                   float scale, int color, float blur, Sweep sweep, int index, float held) {
         float lit = Anim.clamp01(sweep.lit(index));
         float moving = Anim.clamp01(sweep.motion(index));
-        float active = Math.max(4.0f * lit * (1.0f - lit), held);
+        float active = Math.max(Anim.clamp01(sweep.glow(index)), held);
         float size = scale * (1.0f + HELD_GROW * held + MOTION_GROW * moving);
         float left = x - (size - scale) * width(font, glyph, weight, 1.0f) / 2.0f;
         float top = y - (LIFT_UNITS * moving + HELD_LIFT_UNITS * held) * scale
@@ -242,7 +242,7 @@ public final class Ink {
         int base = Colors.alpha(color, UNSUNG + (1.0f - UNSUNG) * lit);
         int ink = Colors.mix(base, (base & 0xFF000000) | (lightened(accent) & 0x00FFFFFF), ACCENT_SHARE * active);
         if (blur <= SHARP) ring(graphics, font, glyph, weight, left, top, size,
-                Colors.alpha(accent, (BLOOM_SHARE + HELD_BLOOM * held) * ((color >>> 24) / 255.0f)), BLOOM_REACH * size, BLOOM_TAPS);
+                Colors.alpha(accent, (BLOOM_SHARE * active + HELD_BLOOM * held) * ((color >>> 24) / 255.0f)), BLOOM_REACH * size, BLOOM_TAPS);
         glyph(graphics, font, glyph, weight, left, top, size, ink, blur);
         glyph(graphics, font, glyph, weight, left + HELD_WEIGHT_UNITS * held * size, top, size, ink, blur);
     }

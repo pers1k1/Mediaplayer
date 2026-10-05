@@ -31,11 +31,18 @@ public final class MorphText {
     private float[] litShown = new float[0];
     private int accentShown = -1;
     private float[] leavingLit = new float[0];
+    private float[] glowShown = new float[0];
+    private float[] leavingGlow = new float[0];
     private int leavingAccent = -1;
     private final Sweep leavingSweep = new Sweep() {
         @Override
         public float lit(int index) {
             return index >= 0 && index < leavingLit.length ? leavingLit[index] : 1.0f;
+        }
+
+        @Override
+        public float glow(int index) {
+            return index >= 0 && index < leavingGlow.length ? leavingGlow[index] : 0.0f;
         }
 
         @Override
@@ -70,8 +77,10 @@ public final class MorphText {
         prefix = whole ? 0 : commonPrefix(previous.glyphs(), current.glyphs());
         suffix = whole ? 0 : commonSuffix(previous.glyphs(), current.glyphs(), prefix);
         leavingLit = litShown;
+        leavingGlow = glowShown;
         leavingAccent = accentShown;
         litShown = new float[0];
+        glowShown = new float[0];
         clock = previous.isEmpty() ? Float.MAX_VALUE : 0.0f;
         leaving = shown;
         shown = 0.0f;
@@ -219,7 +228,11 @@ public final class MorphText {
     private void remember(Sweep sweep) {
         int count = current.glyphs().length;
         if (litShown.length != count) litShown = new float[count];
-        for (int index = 0; index < count; index++) litShown[index] = sweep.lit(index);
+        if (glowShown.length != count) glowShown = new float[count];
+        for (int index = 0; index < count; index++) {
+            litShown[index] = sweep.lit(index);
+            glowShown[index] = sweep.glow(index);
+        }
         accentShown = sweep.accent(-1);
     }
 
