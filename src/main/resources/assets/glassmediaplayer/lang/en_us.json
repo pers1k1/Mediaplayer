@@ -36,7 +36,7 @@
   "glassmediaplayer.settings.flag.artist": "Artist",
   "glassmediaplayer.settings.flag.artist.hint": "Artist line in the card",
   "glassmediaplayer.settings.flag.lyrics": "Lyrics",
-  "glassmediaplayer.settings.flag.lyrics.hint": "Synced lyrics in place of the title, lit letter by letter. Looked up on lrclib.net and NetEase Cloud Music (music.163.com): the title and artist of the track are sent there",
+  "glassmediaplayer.settings.flag.lyrics.hint": "Synced lyrics in place of the title, lit letter by letter. Looked up on lrclib.net, NetEase Cloud Music (music.163.com) and Kugou (lyrics.kugou.com, only for non-Cyrillic titles): the title and artist of the track are sent there",
   "glassmediaplayer.settings.flag.spotifyBridge": "Spotify bridge",
   "glassmediaplayer.settings.flag.spotifyBridge.hint": "Lyrics from Spotify and Spicy Lyrics through the Glass Lyrics Bridge extension for Spicetify. The game listens on 127.0.0.1 only, port 47823",
   "glassmediaplayer.settings.flag.time": "Timer",
