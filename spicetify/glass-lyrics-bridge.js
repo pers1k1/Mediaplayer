@@ -7,6 +7,9 @@
     const RESEND_MS = 10000;
     const PARCEL_VERSION = 1;
     const SUNG = /[\p{L}\p{N}]/u;
+    // WHY: у части песен Spotify размечает текст по слогам, и такой ответ раньше отбрасывался целиком;
+    // WHY: метки строк у него те же, поэтому он идёт построчным, а слоги остаются за Spicy Lyrics
+    const SYNCED = new Set(["LINE_SYNCED", "SYLLABLE_SYNCED"]);
 
     if (!window.Spicetify?.Player?.addEventListener || !window.Spicetify.CosmosAsync) {
         setTimeout(GlassLyricsBridge, 300);
@@ -95,7 +98,7 @@
         const url = `${SPOTIFY_LYRICS}${id}?format=json&vocalRemoval=false&market=from_token`;
         const body = await Spicetify.CosmosAsync.get(url).catch(() => null);
         const lyrics = body?.lyrics;
-        if (lyrics?.syncType !== "LINE_SYNCED" || !Array.isArray(lyrics.lines)) return null;
+        if (!SYNCED.has(lyrics?.syncType) || !Array.isArray(lyrics.lines)) return null;
         const text = lyrics.lines.filter((line) => SUNG.test(flat(line.words)))
             .map((line) => stamp(Number(line.startTimeMs)) + flat(line.words).trim()).join("\n");
         return text ? { source: "spotify", format: "lrc", text } : null;
