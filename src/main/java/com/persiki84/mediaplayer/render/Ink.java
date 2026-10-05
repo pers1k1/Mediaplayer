@@ -30,12 +30,13 @@ public final class Ink {
     private static final float FADE_GROWTH = 3.0f;
     private static final float FOLLOW_SHARE = 0.45f;
     private static final float UNSUNG = 0.42f;
-    private static final float LIFT_UNITS = 0.55f;
+    private static final float LIFT_UNITS = 0.42f;
+    private static final float MOTION_GROW = 0.035f;
     private static final float ACCENT_SHARE = 0.55f;
     private static final float BLOOM_SHARE = 0.07f;
     private static final float BLOOM_REACH = 1.1f;
     private static final int BLOOM_TAPS = 8;
-    private static final float HELD_LIFT_UNITS = 0.45f;
+    private static final float HELD_LIFT_UNITS = 0.3f;
     private static final float HELD_GROW = 0.1f;
     private static final float HELD_BLOOM = 0.16f;
     private static final float HELD_WEIGHT_UNITS = 0.35f;
@@ -191,37 +192,43 @@ public final class Ink {
         return Anim.clamp(place - slot * FOLLOW_SHARE, 0.0f, span - slot);
     }
 
-    // WHY: непропетая буква приглушена, пропетая горит полным цветом, а та, что поётся сейчас, чуть
-    // WHY: приподнимается, отдаёт в цвет обложки и светится им же; всё это колокол по её доле
+    // WHY: непропетая буква приглушена, пропетая горит полным цветом, а та, что поётся сейчас, отдаёт
+    // WHY: в цвет обложки и светится им же колоколом по своей доле. Подъём и лёгкий рост идут
+    // WHY: движением её слога: слог поднимается целиком, держится, пока поётся, и оседает
     public static void sungGlyph(GuiGraphics graphics, Font font, Component glyph, Weight weight, float x, float y,
                                  float scale, int color, float blur, Sweep sweep, int index) {
         float lit = Anim.clamp01(sweep.lit(index));
         float active = 4.0f * lit * (1.0f - lit);
         float held = Anim.clamp01(sweep.held(index));
         if (held > 0.01f) {
-            heldGlyph(graphics, font, glyph, weight, x, y, scale, color, blur, sweep, lit, held);
+            heldGlyph(graphics, font, glyph, weight, x, y, scale, color, blur, sweep, index, held);
             return;
         }
         int ink = Colors.alpha(color, UNSUNG + (1.0f - UNSUNG) * lit);
-        float rise = -LIFT_UNITS * active * scale;
+        float moving = Anim.clamp01(sweep.motion(index));
+        float size = scale * (1.0f + MOTION_GROW * moving);
+        float left = x - (size - scale) * width(font, glyph, weight, 1.0f) / 2.0f;
+        float top = y - LIFT_UNITS * moving * scale - (size - scale) * GLYPH_HEIGHT / 2.0f;
         if (active > 0.01f) {
             int accent = sweep.accent(color);
             ink = Colors.mix(ink, (ink & 0xFF000000) | (accent & 0x00FFFFFF), ACCENT_SHARE * active);
-            if (blur <= SHARP) ring(graphics, font, glyph, weight, x, y + rise, scale,
-                    Colors.alpha(accent, BLOOM_SHARE * active * ((color >>> 24) / 255.0f)), BLOOM_REACH * scale, BLOOM_TAPS);
+            if (blur <= SHARP) ring(graphics, font, glyph, weight, left, top, size,
+                    Colors.alpha(accent, BLOOM_SHARE * active * ((color >>> 24) / 255.0f)), BLOOM_REACH * size, BLOOM_TAPS);
         }
-        glyph(graphics, font, glyph, weight, x, y + rise, scale, ink, blur);
+        glyph(graphics, font, glyph, weight, left, top, size, ink, blur);
     }
 
     // WHY: буква затянутого слова держит акцент, пока слово тянется: подрастает вокруг своей середины,
     // WHY: стоит выше, светится цветом обложки и густеет второй копией со сдвигом в долю пикселя, как
     // WHY: жирное начертание. Всё идёт по held, поэтому акцент разгорается и гаснет плавно
     private static void heldGlyph(GuiGraphics graphics, Font font, Component glyph, Weight weight, float x, float y,
-                                  float scale, int color, float blur, Sweep sweep, float lit, float held) {
+                                  float scale, int color, float blur, Sweep sweep, int index, float held) {
+        float lit = Anim.clamp01(sweep.lit(index));
+        float moving = Anim.clamp01(sweep.motion(index));
         float active = Math.max(4.0f * lit * (1.0f - lit), held);
-        float size = scale * (1.0f + HELD_GROW * held);
+        float size = scale * (1.0f + HELD_GROW * held + MOTION_GROW * moving);
         float left = x - (size - scale) * width(font, glyph, weight, 1.0f) / 2.0f;
-        float top = y - (LIFT_UNITS * 4.0f * lit * (1.0f - lit) + HELD_LIFT_UNITS * held) * scale
+        float top = y - (LIFT_UNITS * moving + HELD_LIFT_UNITS * held) * scale
                 - (size - scale) * GLYPH_HEIGHT / 2.0f;
         int accent = sweep.accent(color);
         int base = Colors.alpha(color, UNSUNG + (1.0f - UNSUNG) * lit);
