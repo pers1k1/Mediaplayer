@@ -41,9 +41,9 @@ Minecraft has no access to Windows media sessions, so the mod talks to them thro
 
 The only network requests the mod makes are the lyrics lookup, and only while the Lyrics setting is on:
 
-- They go over HTTPS to [lrclib.net](https://lrclib.net), a free public lyrics database, and to NetEase Cloud Music (music.163.com), whose word-timed lyrics know where a singer holds a word.
+- They go over HTTPS to [lrclib.net](https://lrclib.net), a free public lyrics database, to NetEase Cloud Music (music.163.com), whose word-timed lyrics know where a singer holds a word, and to Kugou (lyrics.kugou.com) for word-timed lyrics of songs NetEase lacks. Kugou is asked only for titles without Cyrillic letters: its search does not understand them.
 - It sends the title and the artist of the playing track. Nothing about you, your game or your computer.
-- One request per track, only after the track has played for a moment, no more than once every 3 seconds and 10 times a minute. Found and missing lyrics are cached in `.minecraft/glassmediaplayer/lyrics`, so a song is looked up once.
+- One lookup per track (a few requests to the sources above, stopping at the first word-timed lyrics), only after the track has played for a moment, no more than once every 3 seconds and 10 times a minute. Found and missing lyrics are cached in `.minecraft/glassmediaplayer/lyrics`, so a song is looked up once.
 - Switch Lyrics off in settings (`K`) and the mod makes no network requests at all.
 - The Spotify bridge listens on `127.0.0.1:47823` only, never on the network, and accepts lyrics only from the Spotify app (origin `https://*.spotify.com`). It makes no requests of its own. Turn off **Spotify bridge** in settings to close the port.
 
