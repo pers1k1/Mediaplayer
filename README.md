@@ -6,7 +6,7 @@ Glass media island for the Minecraft HUD (Fabric 1.21.11): the track playing in 
 
 ## Скачать
 
-[Modrinth](https://modrinth.com/mod/glass-mediaplayer-island) или [GitHub](https://github.com/pers1k1/Mediaplayer/releases/latest), файл `glassmediaplayer-1.0.7.jar`. Положить в папку `mods` вместе с [Fabric API](https://modrinth.com/mod/fabric-api) для Minecraft 1.21.11. Для текстов из Spotify и Spicy Lyrics в релизе на GitHub лежит расширение `glass-lyrics-bridge.js`, установка в разделе «Мост Spotify: установка».
+[Modrinth](https://modrinth.com/mod/glass-mediaplayer-island) или [GitHub](https://github.com/pers1k1/Mediaplayer/releases/latest), файл `glassmediaplayer-1.0.8.jar`. Положить в папку `mods` вместе с [Fabric API](https://modrinth.com/mod/fabric-api) для Minecraft 1.21.11. Для текстов из Spotify и Spicy Lyrics в релизе на GitHub лежит расширение `glass-lyrics-bridge.js`, установка в разделе «Мост Spotify: установка».
 
 ## Имя и mod id
 
