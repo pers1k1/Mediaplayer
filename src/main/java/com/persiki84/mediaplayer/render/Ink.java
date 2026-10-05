@@ -33,7 +33,9 @@ public final class Ink {
     private static final float LIFT_UNITS = 0.42f;
     private static final float MOTION_GROW = 0.035f;
     private static final float ACCENT_SHARE = 0.55f;
-    private static final float BLOOM_SHARE = 0.07f;
+    private static final float BLOOM_SHARE = 0.1f;
+    private static final float ACCENT_LIGHT = 0.6f;
+    private static final int WHITE = 0xFFFFFFFF;
     private static final float BLOOM_REACH = 1.1f;
     private static final int BLOOM_TAPS = 8;
     private static final float HELD_LIFT_UNITS = 0.3f;
@@ -211,11 +213,17 @@ public final class Ink {
         float top = y - LIFT_UNITS * moving * scale - (size - scale) * GLYPH_HEIGHT / 2.0f;
         if (active > 0.01f) {
             int accent = sweep.accent(color);
-            ink = Colors.mix(ink, (ink & 0xFF000000) | (accent & 0x00FFFFFF), ACCENT_SHARE * active);
+            ink = Colors.mix(ink, (ink & 0xFF000000) | (lightened(accent) & 0x00FFFFFF), ACCENT_SHARE * active);
             if (blur <= SHARP) ring(graphics, font, glyph, weight, left, top, size,
                     Colors.alpha(accent, BLOOM_SHARE * active * ((color >>> 24) / 255.0f)), BLOOM_REACH * size, BLOOM_TAPS);
         }
         glyph(graphics, font, glyph, weight, left, top, size, ink, blur);
+    }
+
+    // WHY: цвет обложки осветляется к белому, прежде чем лечь на поющуюся букву: тёмная обложка
+    // WHY: иначе делала её тусклее уже пропетых, а в Spicy Lyrics поющийся слог самый яркий
+    private static int lightened(int accent) {
+        return Colors.mix(0xFF000000 | accent, WHITE, ACCENT_LIGHT);
     }
 
     // WHY: буква затянутого слова держит акцент, пока слово тянется: подрастает вокруг своей середины,
@@ -232,7 +240,7 @@ public final class Ink {
                 - (size - scale) * GLYPH_HEIGHT / 2.0f;
         int accent = sweep.accent(color);
         int base = Colors.alpha(color, UNSUNG + (1.0f - UNSUNG) * lit);
-        int ink = Colors.mix(base, (base & 0xFF000000) | (accent & 0x00FFFFFF), ACCENT_SHARE * active);
+        int ink = Colors.mix(base, (base & 0xFF000000) | (lightened(accent) & 0x00FFFFFF), ACCENT_SHARE * active);
         if (blur <= SHARP) ring(graphics, font, glyph, weight, left, top, size,
                 Colors.alpha(accent, (BLOOM_SHARE + HELD_BLOOM * held) * ((color >>> 24) / 255.0f)), BLOOM_REACH * size, BLOOM_TAPS);
         glyph(graphics, font, glyph, weight, left, top, size, ink, blur);
