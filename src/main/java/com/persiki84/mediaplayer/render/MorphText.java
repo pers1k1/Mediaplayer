@@ -33,6 +33,10 @@ public final class MorphText {
     private float[] leavingLit = new float[0];
     private float[] glowShown = new float[0];
     private float[] leavingGlow = new float[0];
+    private float[] motionShown = new float[0];
+    private float[] leavingMotion = new float[0];
+    private float[] heldShown = new float[0];
+    private float[] leavingHeld = new float[0];
     private int leavingAccent = -1;
     private final Sweep leavingSweep = new Sweep() {
         @Override
@@ -43,6 +47,18 @@ public final class MorphText {
         @Override
         public float glow(int index) {
             return index >= 0 && index < leavingGlow.length ? leavingGlow[index] : 0.0f;
+        }
+
+        // WHY: уходящая строка уносит подъём слога и акцент затянутого слова такими, какими они были в
+        // WHY: последнем кадре: без них только что пропетое слово на смене строки за кадр падало на место
+        @Override
+        public float motion(int index) {
+            return index >= 0 && index < leavingMotion.length ? leavingMotion[index] : 0.0f;
+        }
+
+        @Override
+        public float held(int index) {
+            return index >= 0 && index < leavingHeld.length ? leavingHeld[index] : 0.0f;
         }
 
         @Override
@@ -78,6 +94,10 @@ public final class MorphText {
         suffix = whole ? 0 : commonSuffix(previous.glyphs(), current.glyphs(), prefix);
         leavingLit = litShown;
         leavingGlow = glowShown;
+        leavingMotion = motionShown;
+        leavingHeld = heldShown;
+        motionShown = new float[0];
+        heldShown = new float[0];
         leavingAccent = accentShown;
         litShown = new float[0];
         glowShown = new float[0];
@@ -229,9 +249,13 @@ public final class MorphText {
         int count = current.glyphs().length;
         if (litShown.length != count) litShown = new float[count];
         if (glowShown.length != count) glowShown = new float[count];
+        if (motionShown.length != count) motionShown = new float[count];
+        if (heldShown.length != count) heldShown = new float[count];
         for (int index = 0; index < count; index++) {
             litShown[index] = sweep.lit(index);
             glowShown[index] = sweep.glow(index);
+            motionShown[index] = sweep.motion(index);
+            heldShown[index] = sweep.held(index);
         }
         accentShown = sweep.accent(-1);
     }
