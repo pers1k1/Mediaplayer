@@ -195,7 +195,7 @@ public final class Ink {
     }
 
     // WHY: непропетая буква приглушена, пропетая горит полным цветом, а слог, что поётся сейчас, отдаёт
-    // WHY: в цвет обложки и светится им же, пока поётся, и тает после. Подъём и лёгкий рост идут
+    // WHY: в цвет подсветки и светится им же, пока поётся, и тает после. Подъём и лёгкий рост идут
     // WHY: движением её слога: слог поднимается целиком, держится, пока поётся, и оседает
     public static void sungGlyph(GuiGraphics graphics, Font font, Component glyph, Weight weight, float x, float y,
                                  float scale, int color, float blur, Sweep sweep, int index) {
@@ -220,14 +220,14 @@ public final class Ink {
         glyph(graphics, font, glyph, weight, left, top, size, ink, blur);
     }
 
-    // WHY: цвет обложки осветляется к белому, прежде чем лечь на поющуюся букву: тёмная обложка
-    // WHY: иначе делала её тусклее уже пропетых, а в Spicy Lyrics поющийся слог самый яркий
+    // WHY: цвет подсветки осветляется к белому, прежде чем лечь на поющуюся букву: тёмный цвет
+    // WHY: иначе делал её тусклее уже пропетых, а в Spicy Lyrics поющийся слог самый яркий
     private static int lightened(int accent) {
         return Colors.mix(0xFF000000 | accent, WHITE, ACCENT_LIGHT);
     }
 
     // WHY: буква затянутого слова держит акцент, пока слово тянется: подрастает вокруг своей середины,
-    // WHY: стоит выше, светится цветом обложки и густеет второй копией со сдвигом в долю пикселя, как
+    // WHY: стоит выше, светится цветом подсветки и густеет второй копией со сдвигом в долю пикселя, как
     // WHY: жирное начертание. Всё идёт по held, поэтому акцент разгорается и гаснет плавно
     private static void heldGlyph(GuiGraphics graphics, Font font, Component glyph, Weight weight, float x, float y,
                                   float scale, int color, float blur, Sweep sweep, int index, float held) {
